@@ -1,0 +1,79 @@
+{
+"suggestions": [
+<#list  UrlLists  as urlList>
+<#if urlList.type==1>
+{
+"reply": {
+"displayText": "${urlList.display}",
+"postback": {
+"data": '${urlList.postback}'
+}
+}
+}<#elseif urlList.type==2>
+{
+"action": {
+"displayText": "${urlList.display}",
+"postback": {
+"data": '${urlList.postback}'
+},
+"urlAction": {
+"openUrl": {
+"url": "${urlList.url}"
+}
+}
+}
+}<#elseif urlList.type==3>
+{
+"action":{
+"dialerAction":{
+"dialPhoneNumber":{
+"phoneNumber":"${urlList.phone}"
+}
+},
+"displayText":"${urlList.display}",
+"postback":{
+"data":'${urlList.postback}'
+}
+}
+}<#elseif urlList.type==4>
+{
+"action":{
+"mapAction":{
+"showLocation":{
+"location":{
+"latitude":"${urlList.showLocation.location.latitude}",
+"longitude":"${urlList.showLocation.location.longitude}",
+"label":"${urlList.showLocation.location.label}"
+},
+"fallbackUrl":"${urlList.showLocation.fallbackUrl}"
+}
+},
+"displayText":"${urlList.display}",
+"postback":{
+"data":'${urlList.postback}'
+}
+}
+}<#elseif urlList.type==5>
+{
+"action":{
+"calendarAction":{
+"createCalendarEvent":{
+"startTime":"${urlList.calendarEvent.startTime}",
+"endTime":"${urlList.calendarEvent.endTime}",
+"title":"${urlList.calendarEvent.title}",
+"description":"${urlList.calendarEvent.description}"
+}
+},
+"displayText":"${urlList.display}",
+"postback":{
+"data":'${urlList.postback}'
+}
+}
+}<#else>
+{
+}
+</#if>
+<#if  urlList_has_next >,</#if>
+</#list>
+]
+}

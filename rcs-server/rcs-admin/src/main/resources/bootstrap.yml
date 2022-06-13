@@ -1,0 +1,10 @@
+server:
+  port: 9696
+
+spring:
+  application:
+    name: rcs-admin
+  profiles:
+    active: @profiles.active@
+  main:
+    allow-bean-definition-overriding: true

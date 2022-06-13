@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.LogSceneMessageMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.LogSceneMessage">
+        <result column="app_id" property="appId"/>
+        <result column="carrier_id" property="carrierId"/>
+        <result column="scene_id" property="sceneId"/>
+        <result column="scene_name" property="sceneName"/>
+        <result column="phone_num" property="phoneNum"/>
+        <result column="log_dt" property="logDt"/>
+    </resultMap>
+
+    <resultMap id="SceneResultMap" type="com.longmaster.platform.dto.scene.LogSceneMessageDTO" extends="BaseResultMap">
+        <result column="app_name" property="appName"/>
+        <result column="carrier_name" property="carrierName"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        app_id,
+        carrier_id,
+        scene_id,
+        scene_name,
+        phone_num,
+        log_dt
+    </sql>
+
+    <select id="selectSceneMessageItems" resultMap="SceneResultMap">
+        select
+               a.app_id,
+               a.carrier_id,
+               a.scene_id,
+               a.scene_name,
+               a.phone_num,
+               a.log_dt,
+               b. name as app_name,
+               c.name as carrier_name
+        from t_log_scene_message a
+            left join t_application b on a.app_id = b.id
+            left join t_carrier c on a.carrier_id = c.id
+
+        <where>
+            <if test="ew.appIds.size() > 0">
+                and  app_id in
+                <foreach item="item" index="index" collection="ew.appIds"
+                         open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+
+            <if test="ew.carrierId != null and ew.carrierId !=''">
+                and carrier_id = #{ew.carrierId}
+            </if>
+
+            <if test="ew.phone != null and ew.phone !=''">
+                and phone_num like '%${ew.phone}%'
+            </if>
+
+            <if test="ew.beginDt != null and ew.beginDt !=''">
+                and DATE(log_dt) &gt;= #{ew.beginDt}
+            </if>
+
+            <if test="ew.endDt != null and ew.endDt !=''">
+                and DATE(log_dt) &lt;= #{ew.endDt}
+            </if>
+
+        </where>
+        order by log_dt desc
+    </select>
+
+</mapper>

@@ -1,0 +1,25 @@
+{
+  "message": {
+    "generalPurposeCardCarousel": {
+      "layout": {
+        "cardWidth": "MEDIUM_WIDTH",
+        "style": ""
+      },
+      "content": [<#list  UrlLists  as urlList>
+        {
+          "media": {
+            "mediaUrl": "${urlList.urlFile}",
+            "mediaContentType": "${urlList.contentTypeFile}",
+            "thumbnailUrl":"${urlList.urlThumb}",
+            "thumbnailContentType":"${urlList.contentTypeThumb}",
+            "thumbnailFileSize":"${urlList.fileSizeThumb}",
+            "height":"MEDIUM_HEIGHT"
+          },
+          "title": "${urlList.title}",
+          "description": "${urlList.description}",
+          "suggestions": ${urlList.suggestions}
+          }<#if  urlList_has_next >,</#if></#list>
+      ]
+    }
+  }
+}

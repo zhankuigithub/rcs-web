@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.MenuAuditRecordMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.MenuAuditRecord">
+        <result column="id" property="id"/>
+        <result column="logic_del" property="logicDel"/>
+        <result column="insert_dt" property="insertDt"/>
+        <result column="update_dt" property="updateDt"/>
+        <result column="chatbot_id" property="chatBotId"/>
+        <result column="carrier_id" property="carrierId"/>
+        <result column="menu_group_id" property="menuGroupId"/>
+        <result column="status" property="status"/>
+        <result column="review_data" property="reviewData"/>
+        <result column="payload" property="payload"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id,
+        logic_del,
+        insert_dt,
+        update_dt,
+        chatbot_id, menu_group_id, status, review_data, payload
+    </sql>
+
+    <select id="selectLastMenuAuditRecord" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from
+        t_menu_audit_record
+        where chatbot_id = #{chatBotId} and status = 0
+        order by insert_dt desc limit 1
+    </select>
+
+    <update id="updateMenuAuditRecord">
+        update  t_menu_audit_record
+        set review_data = #{reviewData} , payload = #{payload}, status = 1 where id = #{id}
+    </update>
+
+    <select id="countNeverAuditMenuAuditRecord" resultType="Integer">
+        select count(1) from t_menu_audit_record where chatbot_id = #{chatBotId} and status = 0
+    </select>
+
+    <!--获取菜单组认证运营商-->
+    <select id="selectAuditItemByGroupId" resultType="com.longmaster.platform.dto.menu.MenuAuditRecordDTO">
+       SELECT
+            a.id,
+            a.`status`,
+            b.id carrierId,
+            b.`name` carrierName
+       FROM
+            t_menu_audit_record a
+            LEFT JOIN t_carrier b ON a.carrier_id = b.id
+        where a.menu_group_id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <select id="getLatestPass" resultType="String">
+         SELECT payload FROM t_menu_audit_record
+         WHERE
+          logic_del = 0   AND status = 1
+          and chatbot_id = #{chatBotId}
+          and carrier_id = #{carrierId}
+          ORDER BY insert_dt desc LIMIT 1
+    </select>
+    <select id="getMenusAuditRecords" resultType="com.longmaster.platform.dto.menu.MenuAuditRecordDTO">
+        SELECT * from (
+            select
+                a.id,
+                a.carrier_id,
+                a.`status`,
+                a.review_data,
+                a.insert_dt,
+                b.name carrierName
+            from  t_menu_audit_record a
+            left join t_carrier b ON a.carrier_id = b.id
+            WHERE EXISTS (SELECT id from t_chatbot WHERE app_id=#{appId,jdbcType=BIGINT} and id = a.chatbot_id )
+            AND
+            <choose>
+                <when test="carrierIds!=null and carrierIds!=''">
+                    a.carrier_id  in (${carrierIds})
+                </when>
+                <otherwise>
+                    a.carrier_id = 0
+                </otherwise>
+            </choose>
+
+            ORDER BY insert_dt desc
+        ) b
+        GROUP BY carrier_id
+    </select>
+
+    <resultMap id="menuAuditRecordDTOMap" type="com.longmaster.platform.dto.menu.MenuAuditRecordDTO">
+        <result column="carrier_id" property="carrierId"/>
+        <result column="carrier_name" property="carrierName"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <select id="getAuditStatusFormMenuGroupId" resultMap="menuAuditRecordDTOMap">
+        SELECT
+        a.carrier_id,
+        b.name as carrier_name,
+        MIN(a.status) AS status
+        FROM
+        t_menu_audit_record AS a
+        LEFT JOIN t_carrier AS b ON a.carrier_id = b.id
+        <where>
+            a.logic_del = 0 AND a.menu_group_id = #{menuGroupId}
+            <choose>
+                <when test="carrierIds!=null and carrierIds!=''">
+                    and a.carrier_id in (${carrierIds})
+                </when>
+                <otherwise>
+                    and  a.carrier_id  = 0
+                </otherwise>
+            </choose>
+        </where>
+        GROUP BY a.carrier_id, a.menu_group_id
+    </select>
+
+</mapper>

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.MessageTemplateMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.MessageTemplate">
+        <result column="id" property="id"/>
+        <result column="logic_del" property="logicDel"/>
+        <result column="insert_dt" property="insertDt"/>
+        <result column="update_dt" property="updateDt"/>
+        <result column="app_id" property="appId"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="back_type" property="backType"/>
+        <result column="payload" property="payload"/>
+        <result column="sug_ids" property="sugIds"/>
+        <result column="status" property="status"/>
+        <result column="width" property="width"/>
+        <result column="sms_content" property="smsContent"/>
+        <result column="orientation" property="orientation"/>
+        <result column="image_alignment" property="imageAlignment"/>
+    </resultMap>
+
+    <resultMap id="PageResultMap" type="com.longmaster.platform.dto.messageTemplate.MessageTemplateDTO"
+               extends="BaseResultMap">
+        <result column="customer_id" property="customerId"/>
+        <result column="customer_name" property="customerName"/>
+        <result column="app_id" property="appId"/>
+        <result column="app_name" property="appName"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id,
+        logic_del,
+        insert_dt,
+        update_dt,
+        app_id, name, type, payload, sug_ids, status
+    </sql>
+
+
+    <select id="pageSelect" resultMap="PageResultMap">
+        SELECT
+        a.id,
+        a.`name`,
+        a.payload,
+        a.sug_ids,
+        a.type,
+        a.`status`,
+        c.`id` as customer_id,
+        c.`name` as customer_name,
+        b.`id` as app_id,
+        b.`name` as app_name,
+        a.update_dt,
+        a.width,
+        a.orientation,
+        a.image_alignment,
+        a.sms_content,
+        a.back_type
+        FROM
+        t_message_template a
+        LEFT JOIN t_application b ON a.app_id = b.id
+        LEFT JOIN t_customer c ON b.customer_id = c.id
+        <where>
+            and a.logic_del = 0
+
+            <if test="ew.id != null and ew.id !=''">
+                and a.id = #{ew.id}
+            </if>
+
+            <if test="ew.type != null and ew.type !=''">
+                and a.type = #{ew.type}
+            </if>
+
+            <if test="ew.name != null and ew.name !=''">
+                and a.name like '%${ew.name}%'
+            </if>
+
+            <if test="ew.appId != null and ew.appId !=''">
+                and a.app_id = #{ew.appId}
+            </if>
+
+            <if test="ew.customerId != null and ew.customerId !=''">
+                and c.id = #{ew.customerId}
+            </if>
+        </where>
+        order by a.insert_dt desc
+    </select>
+
+    <select id="getOne" resultMap="PageResultMap">
+        SELECT
+        a.id,
+        a.`name`,
+        a.payload,
+        a.type,
+        a.sug_ids,
+        a.`status`,
+        c.`id` as customer_id,
+        c.`name` as customer_name,
+        b.`id` as app_id,
+        b.`name` as app_name,
+        a.update_dt,
+        a.width,
+        a.orientation,
+        a.image_alignment,
+        a.back_type,
+        a.sms_content
+        FROM
+        t_message_template a
+        LEFT JOIN t_application b ON a.app_id = b.id
+        LEFT JOIN t_customer c ON b.customer_id = c.id
+        where a.id = #{id}
+    </select>
+
+</mapper>

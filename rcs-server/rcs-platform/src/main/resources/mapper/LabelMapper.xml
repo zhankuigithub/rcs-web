@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.LabelsMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.Labels">
+        <result column="id" property="id"/>
+        <result column="customer_id" property="customerId"/>
+        <result column="type" property="type"/>
+        <result column="name" property="name"/>
+        <result column="status" property="status"/>
+        <result column="logic_del" property="logicDel"/>
+        <result column="insert_dt" property="insertDt"/>
+        <result column="update_dt" property="updateDt"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id,
+        customer_id,
+        type,
+        name,
+        status,
+        insert_dt
+    </sql>
+
+    <select id="pageSelect" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"></include> from t_labels
+        <where>
+             logic_del = 0
+
+            <if test="ew.customerId != null and ew.customerId !=''">
+                and customer_id = #{ew.customerId}
+            </if>
+
+            <if test="ew.name != null and ew.name !=''">
+                and name like '%${ew.name}%'
+            </if>
+        </where>
+        order by insert_dt desc
+    </select>
+
+    <select id="selectGroup" resultType="java.util.HashMap">
+        SELECT
+            CONCAT(t1.id, '') as id,
+            t1.name,
+            COALESCE(t2.cnt,NULL,0) AS cnt
+            FROM
+                (SELECT id ,`name` FROM t_labels  WHERE logic_del = 0 and customer_id = #{customerId} )
+                t1
+                    LEFT JOIN
+            (SELECT
+                 COUNT(1) cnt,
+                 label_id
+             FROM
+                 t_phone_number_label
+
+             WHERE label_id IN (SELECT id FROM t_labels WHERE customer_id = #{customerId}) GROUP BY label_id)
+                t2
+            ON t1.id = t2.label_id
+    </select>
+
+</mapper>

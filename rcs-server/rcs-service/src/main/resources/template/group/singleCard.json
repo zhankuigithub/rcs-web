@@ -1,0 +1,22 @@
+{
+  "message": {
+    "generalPurposeCard": {
+      "layout": {
+        "cardOrientation": "HORIZONTAL",
+        "imageAlignment": "RIGHT"
+      },
+      "content": {
+        "media": {
+          "mediaUrl": "${card.mediaUrl}",
+          "mediaContentType": "${card.mediaContentType}",
+          "thumbnailUrl": "${card.thumbnailUrl}",
+          "thumbnailContentType": "${card.thumbnailContentType}",
+          "height": "MEDIUM_HEIGHT"
+        },
+        "title": "${card.title}",
+        "description": "${card.description}",
+        "suggestions": ${card.suggestions}
+      }
+    }
+  }
+}

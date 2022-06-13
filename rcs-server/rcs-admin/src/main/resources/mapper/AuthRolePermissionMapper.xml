@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.admin.mapper.AuthRolePermissionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.admin.entity.AuthRolePermission">
+        <id column="id" property="id" />
+        <result column="role_id" property="roleId" />
+        <result column="menus_id" property="menusId" />
+        <result column="permissions" property="permissions" />
+        <result column="insert_dt" property="insertDt" />
+        <result column="update_dt" property="updateDt" />
+        <result column="status" property="status" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, role_id, menus_id, permissions, insert_dt, update_dt, status
+    </sql>
+
+    <select id="getRoleMenus" resultType="com.longmaster.admin.dto.auth.PermissionMenusDTO">
+        SELECT
+        a.permissions,
+        b.*
+        FROM
+        t_auth_role_permission a
+        LEFT JOIN t_auth_menus b ON a.menus_id = b.id
+        <if test="ids != null and ids.size() != 0">
+            <where>
+                a.role_id IN
+                <foreach collection="ids" item="id" index="index" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+            </where>
+        </if>
+        group by b.id
+        order by b.sort
+    </select>
+
+</mapper>

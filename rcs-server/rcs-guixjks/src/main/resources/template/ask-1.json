@@ -1,0 +1,23 @@
+{
+  "suggestions": [
+    {
+      "reply": {
+        "displayText": "男性",
+        "postback": {
+          "data": "{\"type\":\"sug\",\"id\":\"0\",\"action\":\"sbc_menu_guidance_man\"}"
+        }
+      }
+    },
+    {
+      "reply": {
+        "displayText": "女性",
+        "postback": {
+          "data": "{\"type\":\"sug\",\"id\":\"0\",\"action\":\"sbc_menu_guidance_woman\"}"
+        }
+      }
+    }
+  ],
+  "type": 1,
+  "content": "Hi～我是您的智能导诊小助手，很高兴为您服务。您可以告诉我您的症状或疾病，我将为您找到适合的医生，请选择您的性别",
+  "chatBotId": ""
+}

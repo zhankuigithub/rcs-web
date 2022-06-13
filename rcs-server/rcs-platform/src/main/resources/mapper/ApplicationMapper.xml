@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.ApplicationMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.Application">
+        <result column="id" property="id"/>
+        <result column="logic_del" property="logicDel"/>
+        <result column="insert_dt" property="insertDt"/>
+        <result column="update_dt" property="updateDt"/>
+        <result column="customer_id" property="customerId"/>
+        <result column="name" property="name"/>
+        <result column="details" property="details"/>
+        <result column="logo_url" property="logoUrl"/>
+        <result column="autograph" property="autograph"/>
+        <result column="category_ids" property="categoryIds"/>
+        <result column="provider_name" property="providerName"/>
+        <result column="is_show_provider" property="isShowProvider"/>
+        <result column="tos_url" property="tosUrl"/>
+        <result column="email" property="email"/>
+        <result column="website_url" property="websiteUrl"/>
+        <result column="phone_num" property="phoneNum"/>
+        <result column="address" property="address"/>
+        <result column="longitude" property="longitude"/>
+        <result column="latitude" property="latitude"/>
+        <result column="white_ips" property="whiteIps"/>
+        <result column="remark" property="remark"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <resultMap id="PageResultMap" type="com.longmaster.platform.dto.application.ApplicationDTO" extends="BaseResultMap">
+        <result column="id" property="id"/>
+        <result column="customerName" property="customerName"/>
+    </resultMap>
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id
+        ,
+        logic_del,
+        insert_dt,
+        update_dt,
+        customer_id, name, details, logo_url, autograph, category_ids, provider_name, is_show_provider, tos_url, email, website_url, phone_num, address, longitude, latitude, white_ips, remark, status
+    </sql>
+
+    <select id="pageSelect" resultMap="PageResultMap">
+        select
+        a.*,
+        b.`name` customerName
+        from t_application a
+        LEFT JOIN t_customer b ON b.id = a.customer_id
+        <where>
+            and a.logic_del = 0
+            <if test="ew.name != null and ew.name != ''">
+                and a.name like CONCAT("%", #{ew.name,jdbcType=VARCHAR}, "%")
+            </if>
+            <if test="ew.customerId != null ">
+                and a.customer_id = #{ew.customerId,jdbcType=BIGINT}
+            </if>
+            <if test="ew.id != null ">
+                and a.id = #{ew.id,jdbcType=BIGINT}
+            </if>
+        </where>
+        order by a.insert_dt desc
+    </select>
+
+    <!--获取开通运营-->
+    <select id="selectAppsByCustomerId" resultMap="BaseResultMap">
+        select a.*
+        from t_application a
+                 LEFT JOIN t_chatbot b ON a.id = b.app_id
+        where a.customer_id = #{customerId,jdbcType=BIGINT}
+          and b.status >= 0
+    </select>
+
+    <select id="selectAppList" resultMap="BaseResultMap">
+        select *
+        from t_application
+        where customer_id = #{customerId,jdbcType=BIGINT}
+    </select>
+
+    <select id="getInfo" resultMap="PageResultMap">
+        SELECT t1.*,
+               t2.name AS customerName
+        FROM t_application t1
+                 LEFT JOIN t_customer t2 ON t1.`customer_id` = t2.`id`
+        WHERE t1.id = #{appId}
+    </select>
+
+</mapper>

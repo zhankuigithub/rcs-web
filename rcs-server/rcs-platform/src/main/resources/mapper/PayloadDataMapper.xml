@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.PayloadDataMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.PayloadData">
+        <result column="id" property="id"/>
+        <result column="data" property="data"/>
+        <result column="menu_id" property="menuId"/>
+        <result column="suggestion_id" property="suggestionId"/>
+        <result column="message_template_id" property="messageTemplateId"/>
+        <result column="insert_dt" property="insertDt"/>
+        <result column="update_dt" property="updateDt"/>
+    </resultMap>
+
+    <delete id="deleteByIds">
+        delete from t_payload_data where id in (${ids})
+    </delete>
+
+    <delete id="deleteBySugIds">
+        delete from t_payload_data where suggestion_id in (${sugIds})
+    </delete>
+
+    <delete id="deleteByMenuIds">
+        delete from t_payload_data where menu_id in (${menuIds})
+    </delete>
+
+</mapper>

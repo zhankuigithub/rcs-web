@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<msg:outboundMessageRequest xmlns:msg="urn:oma:xml:rest:netapi:messaging:1">
+<destinationAddress>tel:+86${phone}</destinationAddress>
+<senderAddress>${senderAddress}</senderAddress>
+<contentType>multipart/mixed; boundary="next"</contentType>
+<bodyText><![CDATA[
+--next
+Content-Type: application/vnd.gsma.botmessage.v1.0+json
+Content-Disposition: inline; filename="Message"
+Content-Length: [content length]
+
+${cardMany}
+
+--next
+Content-Type: application/vnd.gsma.botsuggestion.v1.0+json
+Content-Disposition: inline; filename="Chiplist.lst"
+Content-Length: [content length]
+
+${suggestion}
+
+--next--
+  ]]></bodyText>
+<conversationID>${conversationId}</conversationID>
+<contributionID>${contributionId}</contributionID>
+<inReplyToContributionID>${inReplyToContributionId}</inReplyToContributionID>
+<storeSupported>false</storeSupported>
+<reportRequest>Sent</reportRequest>
+<reportRequest>Delivered</reportRequest>
+<reportRequest>Displayed</reportRequest>
+<reportRequest>Failed</reportRequest>
+<reportRequest>SMS</reportRequest>
+<fallbackSupported>${fallbackSupported?c}</fallbackSupported>
+<fallbackContentType>text/plain</fallbackContentType>
+<fallbackContentEncoding>utf8</fallbackContentEncoding>
+<rcsBodyText>${rcsBodyText}</rcsBodyText>
+</msg:outboundMessageRequest>

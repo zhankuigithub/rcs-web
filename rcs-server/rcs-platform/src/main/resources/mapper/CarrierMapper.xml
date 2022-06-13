@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.CarrierMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.Carrier">
+        <result column="id" property="id"/>
+        <result column="logic_del" property="logicDel"/>
+        <result column="insert_dt" property="insertDt"/>
+        <result column="update_dt" property="updateDt"/>
+        <result column="name" property="name"/>
+        <result column="details" property="details"/>
+        <result column="csp_id" property="cspId"/>
+        <result column="csp_secret" property="cspSecret"/>
+        <result column="csp_token" property="cspToken"/>
+        <result column="csp_server_url" property="cspServerUrl"/>
+        <result column="remark" property="remark"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id,
+        logic_del,
+        insert_dt,
+        update_dt,
+        name, details, csp_id, csp_secret, csp_token, csp_server_url, remark, status
+    </sql>
+
+    <select id="selectCarriers" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_carrier where
+        <choose>
+            <when test="carrierIds!=null and carrierIds!=''">
+                id in (${carrierIds})
+            </when>
+            <otherwise>
+                id = 0
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="selectCarrierByAppId" resultType="com.longmaster.platform.dto.carrier.CarrierDTO">
+        select
+            a.id,
+            a.name,
+            b.status auditStatus
+            from t_carrier a
+            left join t_chatbot b ON a.id = b.carrier_id and b.app_id =#{appId,jdbcType=BIGINT}
+            where
+            <choose>
+                <when test="carrierIds!=null and carrierIds!=''">
+                    a.id in (${carrierIds})
+                </when>
+                <otherwise>
+                    a.id = 0
+                </otherwise>
+            </choose>
+            group by a.id
+    </select>
+
+</mapper>

@@ -1,0 +1,47 @@
+{
+  "suggestions": [
+    {
+      "reply": {
+        "displayText": "小于6岁",
+        "postback": {
+          "data": "{\"type\":\"sug\",\"id\":\"0\",\"action\":\"sbc_menu_guidance_age_1\"}"
+        }
+      }
+    },
+    {
+      "reply": {
+        "displayText": "7-15岁",
+        "postback": {
+          "data": "{\"type\":\"sug\",\"id\":\"0\",\"action\":\"sbc_menu_guidance_age_2\"}"
+        }
+      }
+    },
+    {
+      "reply": {
+        "displayText": "16-35岁",
+        "postback": {
+          "data": "{\"type\":\"sug\",\"id\":\"0\",\"action\":\"sbc_menu_guidance_age_3\"}"
+        }
+      }
+    },
+    {
+      "reply": {
+        "displayText": "36-60岁",
+        "postback": {
+          "data": "{\"type\":\"sug\",\"id\":\"0\",\"action\":\"sbc_menu_guidance_age_4\"}"
+        }
+      }
+    },
+    {
+      "reply": {
+        "displayText": "大于60岁",
+        "postback": {
+          "data": "{\"type\":\"sug\",\"id\":\"0\",\"action\":\"sbc_menu_guidance_age_5\"}"
+        }
+      }
+    }
+  ],
+  "type": 1,
+  "content": "请选择您的年龄",
+  "chatBotId": ""
+}

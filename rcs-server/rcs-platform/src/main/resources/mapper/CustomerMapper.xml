@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.CustomerMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.Customer">
+        <result column="id" property="id" />
+        <result column="logic_del" property="logicDel" />
+        <result column="insert_dt" property="insertDt" />
+        <result column="update_dt" property="updateDt" />
+        <result column="name" property="name" />
+        <result column="category" property="category" />
+        <result column="grade" property="grade" />
+        <result column="details" property="details" />
+        <result column="logo_url" property="logoUrl" />
+        <result column="phone_num" property="phoneNum" />
+        <result column="business_license" property="businessLicense" />
+        <result column="address" property="address" />
+        <result column="province" property="province" />
+        <result column="city" property="city" />
+        <result column="area" property="area" />
+        <result column="status" property="status" />
+        <result column="audit_content" property="auditContent" />
+    </resultMap>
+
+    <resultMap id="PageResultMap" type="com.longmaster.platform.dto.customer.CustomerDTO" extends="BaseResultMap">
+        <collection property="appList" column="id" ofType="com.longmaster.platform.entity.Application" select="com.longmaster.platform.mapper.ApplicationMapper.selectAppList">
+        </collection>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id,
+        logic_del,
+        insert_dt,
+        update_dt,
+        `name`,
+        category,
+        grade,
+        details,
+        logo_url,
+        phone_num,
+        business_license,
+        address,
+        province,
+        city,
+        area,
+        status,
+        audit_content
+    </sql>
+
+    <!--分页查询客户信息-->
+    <select id="pageSelect" resultMap="PageResultMap">
+        SELECT
+            a.*
+        FROM t_customer AS a
+        <where>
+            and a.logic_del = 0
+            <if test="ew.name != null and ew.name != ''">
+                and a.`name` like CONCAT("%", #{ew.name,jdbcType=VARCHAR}, "%")
+            </if>
+            <if test="ew.status != null">
+                and a.`status` = #{ew.status,jdbcType=TINYINT}
+            </if>
+        </where>
+        order by a.insert_dt desc
+    </select>
+</mapper>

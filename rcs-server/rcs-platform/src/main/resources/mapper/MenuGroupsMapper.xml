@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.MenuGroupsMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.MenuGroups">
+        <result column="id" property="id"/>
+        <result column="logic_del" property="logicDel"/>
+        <result column="insert_dt" property="insertDt"/>
+        <result column="update_dt" property="updateDt"/>
+        <result column="app_id" property="appId"/>
+        <result column="name" property="name"/>
+        <result column="menu_ids" property="menuIds"/>
+        <result column="status" property="status"/>
+        <result column="remark" property="remark"/>
+    </resultMap>
+
+    <!--分页查询-->
+    <resultMap id="PageResultMap" type="com.longmaster.platform.dto.menu.MenuGroupsDTO" extends="BaseResultMap">
+        <result column="customerId" property="customerId"/>
+        <result column="customerName" property="customerName"/>
+        <result column="appName" property="appName"/>
+
+<!--        <collection property="auditRecords" ofType="com.longmaster.platform.dto.menu.MenuAuditRecordDTO">-->
+<!--            <result column="auditStatus" property="status"/>-->
+<!--            <result column="reviewData" property="reviewData"/>-->
+<!--            <result column="carrierId" property="carrierId"/>-->
+<!--            <result column="carrierName" property="carrierName"/>-->
+<!--        </collection>-->
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id,
+        logic_del,
+        insert_dt,
+        update_dt,
+        app_id, `name`, menu_ids, status, remark
+    </sql>
+
+    <select id="pageSelect" resultMap="PageResultMap">
+        SELECT
+        a.*,
+        b.id appId,
+        b.name appName,
+        c.id customerId,
+        c.name customerName
+        FROM t_menu_groups AS a
+        LEFT JOIN t_application b ON a.app_id = b.id
+        LEFT JOIN t_customer c ON b.customer_id = c.id
+        WHERE a.logic_del = 0
+        <if test="ew.appId != null">
+            and b.id = #{ew.appId,jdbcType=BIGINT}
+        </if>
+        <if test="ew.customerId != null ">
+            and c.id = #{ew.customerId,jdbcType=BIGINT}
+        </if>
+        <if test="ew.appName != null and ew.appName != ''">
+            and b.name like concat('%', #{ew.appName}, '%')
+        </if>
+        <if test="ew.customerName != null and ew.customerName != ''">
+            and c.name like concat('%', #{ew.customerName}, '%')
+        </if>
+    </select>
+
+    <select id="selectLastNewOne" resultMap="BaseResultMap">
+        select id, app_id, name from t_menu_groups where  app_id = #{appId} and status = 0 and logic_del = 0 order  by insert_dt desc limit 1
+    </select>
+
+    <select id="isSubmit" resultType="boolean">
+        SELECT CASE WHEN count(1) > 0 THEN TRUE ELSE FALSE  END AS tag FROM t_menu_groups WHERE logic_del = 0 AND app_id = #{appId}
+    </select>
+
+</mapper>

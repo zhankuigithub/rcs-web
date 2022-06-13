@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.NewsInfoMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.NewsInfo">
+        <result column="id" property="id"/>
+        <result column="type" property="type"/>
+        <result column="source" property="source"/>
+        <result column="title" property="title"/>
+        <result column="source_url" property="sourceUrl"/>
+        <result column="content" property="content"/>
+        <result column="weight" property="weight"/>
+        <result column="insert_dt" property="insertDt"/>
+        <result column="update_dt" property="updateDt"/>
+    </resultMap>
+
+    <select id="queryList" resultMap="BaseResultMap">
+        select id, type, source, title, source_url, content, weight, insert_dt
+        from t_news_info order by weight desc limit #{index}, #{size}
+    </select>
+
+    <select id="selectBefore" resultMap="BaseResultMap">
+        select id, title ,weight from t_news_info where weight &gt; #{weight} order by weight asc limit 1
+    </select>
+
+    <select id="selectAfter" resultMap="BaseResultMap">
+        select id, title ,weight from t_news_info where weight &lt; #{weight} order by weight desc limit 1
+    </select>
+
+</mapper>

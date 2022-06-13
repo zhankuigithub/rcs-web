@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.admin.mapper.AuthAdminMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.admin.entity.AuthAdmin">
+        <id column="id" property="id"/>
+        <result column="account" property="account"/>
+        <result column="password" property="password"/>
+        <result column="phone" property="phone"/>
+        <result column="name" property="name"/>
+        <result column="avatar" property="avatar"/>
+        <result column="status" property="status"/>
+        <result column="insert_dt" property="insertDt"/>
+        <result column="update_dt" property="updateDt"/>
+        <result column="logic_del" property="logicDel"/>
+    </resultMap>
+
+    <!--    管理员信息+角色信息-->
+    <resultMap id="AdminAndRoleMap" type="com.longmaster.admin.dto.auth.AuthAdminDto" extends="BaseResultMap">
+        <collection property="roles" ofType="com.longmaster.admin.entity.AuthRoles">
+            <id column="rId" property="id"/>
+            <result column="role_name" property="roleName"/>
+            <result column="code" property="code"/>
+        </collection>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, account, phone, `name`, avatar, status, insert_dt, update_dt, logic_del
+    </sql>
+
+    <!--    获取管理员信息及角色信息-->
+    <select id="getAdminDetail" resultMap="AdminAndRoleMap">
+        SELECT
+        a.*,
+        c.id rId,
+        c.code,
+        c.role_name
+        FROM
+        t_auth_admin a
+        LEFT JOIN t_auth_admin_role b ON a.id = b.admin_id
+        LEFT JOIN t_auth_roles c ON b.role_id = c.id
+        WHERE
+        a.id = #{id,jdbcType=VARCHAR}
+    </select>
+
+    <select id="pageSelect" resultMap="AdminAndRoleMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_auth_admin
+        <where>
+            <if test="ew.account!=null and ew.account!=''">
+                account = #{ew.account}
+            </if>
+            <if test="ew.name != null and ew.name !=''">
+                and name like  '%${ew.name}%'
+            </if>
+            <if test="ew.status != null and ew.status !=''">
+                and status = #{ew.status}
+            </if>
+            <if test="ew.phone != null and ew.phone !=''">
+                and phone = #{ew.phone}
+            </if>
+        </where>
+        order  by insert_dt asc
+    </select>
+</mapper>

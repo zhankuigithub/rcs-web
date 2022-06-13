@@ -1,0 +1,8 @@
+server:
+  port: 41005
+
+spring:
+  application:
+    name: rcs-guixjks
+  profiles:
+    active: @profiles.active@

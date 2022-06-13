@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.PhoneNumberBookMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.PhoneNumberBook">
+        <result column="id" property="id"/>
+        <result column="customer_id" property="customerId"/>
+        <result column="name" property="name"/>
+        <result column="phone_num" property="phoneNum"/>
+        <result column="sex" property="sex"/>
+        <result column="remark" property="remark"/>
+        <result column="logic_del" property="logicDel"/>
+        <result column="insert_dt" property="insertDt"/>
+        <result column="update_dt" property="updateDt"/>
+    </resultMap>
+
+    <resultMap id="PhoneNumberDtoMap" type="com.longmaster.platform.dto.phoneBook.PhoneNumberDTO">
+        <result column="customer_id" property="customerId"/>
+        <result column="customer_name" property="customerName"/>
+        <result column="cnt" property="cnt"/>
+        <result column="cnt_cm" property="cntCm"/>
+        <result column="cnt_cu" property="cntCu"/>
+        <result column="cnt_ct" property="cntCt"/>
+    </resultMap>
+
+    <resultMap id="PhoneNumberDetailDtoMap" type="com.longmaster.platform.dto.phoneBook.PhoneNumberDetailDTO"
+               extends="BaseResultMap">
+
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id
+        ,
+        customer_id,
+        name,
+        phone_num,
+        sex,
+        remark,
+        insert_dt
+    </sql>
+
+    <select id="pageSelect" resultMap="PhoneNumberDetailDtoMap">
+        select <include refid="Base_Column_List"></include> from t_phone_number_book
+        <where>
+            logic_del = 0
+
+            <if test="params.customerId != null and params.customerId !=''">
+                and customer_id = #{params.customerId}
+            </if>
+
+            <if test="params.name != null and params.name !=''">
+                and name like '%${params.name}%'
+            </if>
+
+            <if test="params.phoneNum != null and params.phoneNum !=''">
+                and phone_num = #{params.phoneNum}
+            </if>
+
+            <if test="params.labelId!=null and params.labelId!=''">
+                and id in (SELECT phone_id FROM t_phone_number_label WHERE label_id = #{params.labelId})
+            </if>
+
+        </where>
+        order by insert_dt desc
+    </select>
+
+    <select id="selectPhoneNumberBook" resultMap="PhoneNumberDtoMap">
+        SELECT
+        t1.customer_id,
+        t2.name AS customer_name,
+        COUNT(1) AS cnt,
+        SUM(CASE WHEN t1.phone_num REGEXP '^1([3][4-9]|[4][7]|[5][0-27-9]|[7][8]|[8][2-478]|[9][5])[0-9]{8}$' THEN 1
+        ELSE 0 END ) AS cnt_cm,
+        SUM(CASE WHEN t1.phone_num REGEXP '^1([3][0-2]|[4][5]|[5][5-6]|[6][6]|[7][6]|[8][5-6])[0-9]{8}$' THEN 1 ELSE 0
+        END ) AS cnt_cu,
+        SUM(CASE WHEN t1.phone_num REGEXP '^1(3[3]|5[3]|7[37]|8[019])[0-9]{8}$' THEN 1 ELSE 0 END ) AS cnt_ct
+        FROM
+        t_phone_number_book t1 LEFT JOIN t_customer t2 ON t1.customer_id = t2.id
+        <where>
+            t1.logic_del=0
+            <if test="params.customerId!=null and params.customerId!=''">
+                and t1.customer_id = #{params.customerId}
+            </if>
+        </where>
+        GROUP BY t1.customer_id
+    </select>
+
+    <select id="getPhonesByLabel" resultType="String">
+        SELECT phone_num FROM t_phone_number_book
+        WHERE id IN (SELECT DISTINCT phone_id FROM t_phone_number_label WHERE label_id in
+        <foreach item="item" index="index" collection="ids"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>)
+    </select>
+
+</mapper>

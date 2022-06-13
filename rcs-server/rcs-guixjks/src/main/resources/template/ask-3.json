@@ -1,0 +1,23 @@
+{
+  "suggestions": [
+    {
+      "reply": {
+        "displayText": "是",
+        "postback": {
+          "data": "{\"type\":\"sug\",\"id\":\"0\",\"action\":\"sbc_menu_guidance_pregnant_1\"}"
+        }
+      }
+    },
+    {
+      "reply": {
+        "displayText": "否",
+        "postback": {
+          "data": "{\"type\":\"sug\",\"id\":\"0\",\"action\":\"sbc_menu_guidance_pregnant_0\"}"
+        }
+      }
+    }
+  ],
+  "type": 1,
+  "content": "请问您是否怀孕？",
+  "chatBotId": ""
+}

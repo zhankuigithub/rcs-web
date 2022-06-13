@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.ChatbotMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.Chatbot">
+        <result column="id" property="id"/>
+        <result column="logic_del" property="logicDel"/>
+        <result column="insert_dt" property="insertDt"/>
+        <result column="update_dt" property="updateDt"/>
+        <result column="audit_dt" property="auditDt"/>
+        <result column="app_id" property="appId"/>
+        <result column="carrier_id" property="carrierId"/>
+        <result column="csp_id" property="cspId"/>
+        <result column="access_tag_no" property="accessTagNo"/>
+        <result column="csp_ec_no" property="cspEcNo"/>
+        <result column="chatbot_id" property="chatBotId"/>
+        <result column="access_number" property="accessNumber"/>
+        <result column="sms_code" property="smsCode"/>
+        <result column="status" property="status"/>
+        <result column="audit_status" property="auditStatus"/>
+        <result column="review_data" property="reviewData"/>
+    </resultMap>
+
+    <!--机器人详情-->
+    <resultMap id="DetailResultMap" type="com.longmaster.platform.dto.chatbot.ChatBotWrapperDTO">
+        <association property="chatbot" column="id" resultMap="BaseResultMap"/>
+        <association property="application" javaType="com.longmaster.platform.entity.Application">
+            <result column="app_id" property="id"/>
+            <result column="logic_del" property="logicDel"/>
+            <result column="insert_dt" property="insertDt"/>
+            <result column="update_dt" property="updateDt"/>
+            <result column="customer_id" property="customerId"/>
+            <result column="name" property="name"/>
+            <result column="details" property="details"/>
+            <result column="logo_url" property="logoUrl"/>
+            <result column="autograph" property="autograph"/>
+            <result column="category_ids" property="categoryIds"/>
+            <result column="provider_name" property="providerName"/>
+            <result column="is_show_provider" property="isShowProvider"/>
+            <result column="tos_url" property="tosUrl"/>
+            <result column="email" property="email"/>
+            <result column="website_url" property="websiteUrl"/>
+            <result column="phone_num" property="phoneNum"/>
+            <result column="address" property="address"/>
+            <result column="longitude" property="longitude"/>
+            <result column="latitude" property="latitude"/>
+            <result column="white_ips" property="whiteIps"/>
+            <result column="remark" property="remark"/>
+            <result column="status" property="status"/>
+        </association>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id,
+        logic_del,
+        insert_dt,
+        update_dt,
+        app_id,
+        access_tag_no,
+        carrier_id, csp_id, csp_ec_no, chatbot_id, access_number, sms_code, status, audit_status, review_data, audit_dt
+    </sql>
+
+    <select id="selectAllChatBotId" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from
+        t_chatbot
+        <where>
+            app_id = #{appId}
+
+            <if test="channelIds.size() > 0">
+                and carrier_id in
+                <foreach item="item" index="index" collection="channelIds"
+                         open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <!--分页查询机器人信息 包含客户、运营商信息-->
+    <select id="pageSelect" resultType="com.longmaster.platform.dto.chatbot.ChatBotDTO">
+        SELECT
+        a.*,
+        b.category_ids categoryIds,
+        b.`name` appName,
+        c.id customerId,
+        c.`name` customerName,
+        d.`name` carrierName
+        FROM
+        t_chatbot a
+        LEFT JOIN t_application b ON a.app_id = b.id and b.logic_del = 0
+        LEFT JOIN t_customer c ON b.customer_id = c.id and c.logic_del=0
+        LEFT JOIN t_carrier d ON a.carrier_id = d.id and d.logic_del = 0
+        <where>
+            a.logic_del = 0 and
+            <choose>
+                <when test="carrierIds!=null and carrierIds!=''">
+                    a.carrier_id in (${carrierIds})
+                </when>
+                <otherwise>
+                    a.carrier_id = 0
+                </otherwise>
+            </choose>
+
+            <if test="ew.id != null ">
+                and a.id = #{ew.id,jdbcType=BIGINT}
+            </if>
+            <if test="ew.appId != null ">
+                and a.app_id = #{ew.appId,jdbcType=BIGINT}
+            </if>
+            <if test="ew.carrierId != null ">
+                and a.carrier_id = #{ew.carrierId,jdbcType=BIGINT}
+            </if>
+            <if test="ew.customerId != null ">
+                and b.customer_id = #{ew.customerId,jdbcType=BIGINT}
+            </if>
+        </where>
+        order by a.insert_dt desc
+    </select>
+
+    <!--机器人详情-->
+    <select id="queryDetail" resultMap="DetailResultMap">
+        SELECT
+        a.*,
+        b.*
+        FROM
+        t_chatbot a
+        LEFT JOIN t_application b ON a.app_id = b.id
+        WHERE
+        a.id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <select id="queryDetailByChatBotId" resultMap="DetailResultMap">
+        SELECT
+        a.*,
+        b.*
+        FROM
+        t_chatbot a
+        LEFT JOIN t_application b ON a.app_id = b.id
+        WHERE
+        a.chatbot_id = #{chatBotId}
+    </select>
+    <select id="selectChatbotList" resultType="com.longmaster.platform.dto.chatbot.ChatBotDTO">
+        select
+            a.*,
+            b.name carrierName
+        from t_chatbot a
+        left join t_carrier b ON a.carrier_id = b.id
+        where a.app_id = #{appId} and
+        <choose>
+            <when test="carrierIds!=null and carrierIds!=''">
+                a.carrier_id in (${carrierIds})
+            </when>
+            <otherwise>
+                a.carrier_id = 0
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="getChatBotId" resultType="String">
+        SELECT chatbot_id from t_chatbot
+        WHERE app_id =
+        (select id from t_application
+        WHERE name = #{appName} AND customer_id =
+         (select id from t_customer
+         WHERE name = #{customerName}))
+          AND carrier_id = #{carrierId}
+    </select>
+
+    <select id="getByCarrierIds" resultMap="BaseResultMap">
+          SELECT id ,carrier_id from t_chatbot WHERE app_id = #{appId} and
+            <choose>
+                <when test="carrierIds!=null and carrierIds!=''">
+                    carrier_id in (${carrierIds})
+                </when>
+                <otherwise>
+                    carrier_id = 0
+                </otherwise>
+            </choose>
+    </select>
+
+    <select id="getAllChatBotIdByCustomerId" resultType="String">
+        SELECT chatbot_id FROM t_chatbot WHERE app_id in (SELECT id FROM t_application WHERE customer_id = #{customerId})
+    </select>
+
+    <select id="selectChatBotByCid" resultType="java.util.HashMap">
+        SELECT
+            t1.id,
+            t1.app_id,
+            t2.name AS app_name,
+            t1.carrier_id,
+            t3.name AS carrier_name
+        FROM t_chatbot t1 LEFT JOIN t_application t2 ON t1.`app_id` = t2.id
+                          LEFT JOIN t_carrier t3 ON t1.`carrier_id` = t3.id
+        WHERE t1.logic_del = 0 AND  app_id IN (SELECT id FROM t_application WHERE customer_id = #{customerId})
+    </select>
+
+</mapper>

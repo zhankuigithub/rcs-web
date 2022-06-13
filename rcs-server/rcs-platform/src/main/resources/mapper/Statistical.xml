@@ -1,0 +1,1207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.StatisticalMapper">
+
+    <select id="getHomeStatistical" resultType="java.util.HashMap">
+        <choose>
+            <when test="chatBotIds.size() > 0">
+                SELECT
+                t.todayDownCnt,
+                CONCAT(IF(t.todayDownCnt - t.yesterdayDownCnt >= 0,'+',"") ,t.todayDownCnt - t.yesterdayDownCnt) as downCut,
+
+                CONCAT(ROUND(coalesce(t.currentSentPercentage ,0) * 100 ,2), '%') as currentSentPercentage,
+
+                CONCAT(IF(coalesce(t.currentSentPercentage ,0) - coalesce(t.lastWeekSentPercentage ,0) >= 0,'+',"") ,
+                    ROUND(coalesce(t.currentSentPercentage ,0)* 100 - coalesce(t.lastWeekSentPercentage ,0)* 100, 2) ,'%') as sendPercentageCut,
+
+
+                CONCAT(ROUND(coalesce(t.currentReadPercentage, 0)* 100 ,2), '%') as currentReadPercentage,
+
+                CONCAT(IF(coalesce(t.currentReadPercentage ,0) - coalesce(t.lastWeekReadPercentage ,0) >= 0,'+',"") ,
+                    ROUND(coalesce(t.currentReadPercentage ,0)* 100 - coalesce(t.lastWeekReadPercentage ,0)* 100, 2), '%') as readPercentageCut,
+
+
+                t.todayUpCnt,
+                CONCAT(IF(t.todayUpCnt - t.yesterdayUpCnt > 0,'+',"") ,t.todayUpCnt - t.yesterdayUpCnt) as upCut
+
+                from (
+
+                SELECT (SELECT count(*) FROM t_log_send_message WHERE DATE( log_dt ) = CURRENT_DATE and chatbot_id in
+
+                <foreach item="item" index="index" collection="chatBotIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                ) AS todayDownCnt,
+
+                (SELECT count(*) FROM t_log_send_message WHERE DATE( log_dt ) = DATE_SUB(curdate(), INTERVAL 1 DAY) and chatbot_id in
+                <foreach item="item" index="index" collection="chatBotIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                ) AS yesterdayDownCnt,
+
+                (
+                SELECT
+                ( SELECT count(*) FROM t_log_send_message_status WHERE STATUS = 3 and chatbot_id in
+
+                <foreach item="item" index="index" collection="chatBotIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+
+                AND log_dt > date ( now()) - INTERVAL 7 DAY )
+                /
+                ( SELECT count(*) FROM t_log_send_message WHERE log_dt > date ( now()) - INTERVAL 7 DAY and chatbot_id
+                in
+
+                <foreach item="item" index="index" collection="chatBotIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+
+                )
+                ) AS currentSentPercentage,
+
+                (
+                SELECT
+                ( SELECT count(*) FROM t_log_send_message_status WHERE STATUS = 3 and chatbot_id in
+
+                <foreach item="item" index="index" collection="chatBotIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+
+                AND log_dt > date ( now()) - INTERVAL 14 DAY )
+                /
+                ( SELECT count(*) FROM t_log_send_message WHERE log_dt > date ( now()) - INTERVAL 14 DAY and chatbot_id
+                in
+
+                <foreach item="item" index="index" collection="chatBotIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+
+                )
+                ) AS lastWeekSentPercentage,
+
+                (
+                SELECT
+                ( SELECT count(*) FROM t_log_send_message_status WHERE STATUS = 4 AND log_dt > date ( now()) - INTERVAL
+                7 DAY and chatbot_id in
+
+                <foreach item="item" index="index" collection="chatBotIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                )
+                /
+                ( SELECT count(*) FROM t_log_send_message_status WHERE STATUS = 3 AND log_dt > date ( now()) - INTERVAL
+                7 DAY and chatbot_id in
+
+                <foreach item="item" index="index" collection="chatBotIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                )
+                ) AS currentReadPercentage,
+
+                (
+                SELECT
+                ( SELECT count(*) FROM t_log_send_message_status WHERE STATUS = 4 AND log_dt > date ( now()) - INTERVAL
+                7 DAY and chatbot_id in
+
+                <foreach item="item" index="index" collection="chatBotIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                )
+                /
+                ( SELECT count(*) FROM t_log_send_message_status WHERE STATUS = 3 AND log_dt > date ( now()) - INTERVAL
+                7 DAY and chatbot_id in
+
+                <foreach item="item" index="index" collection="chatBotIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                )
+                ) AS lastWeekReadPercentage,
+
+                (
+                SELECT count(*)
+                FROM t_log_receive_message
+                WHERE content_type in (1, 3 ,4) and DATE ( log_dt ) = CURRENT_DATE and chatbot_id in
+                <foreach item="item" index="index" collection="chatBotIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+
+                ) AS todayUpCnt,
+
+                (
+                SELECT count(*)
+                FROM t_log_receive_message
+                WHERE content_type in (1, 3 ,4) and DATE ( log_dt ) = DATE_SUB(curdate(), INTERVAL 1 DAY) and chatbot_id in
+                <foreach item="item" index="index" collection="chatBotIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                ) AS yesterdayUpCnt
+                ) as t
+            </when>
+            <otherwise>
+                SELECT
+                0 AS todayDownCnt,
+                0 AS downCut,
+
+                0 AS currentSentPercentage,
+                0 AS sendPercentageCut,
+
+                0 AS currentReadPercentage,
+                0 AS readPercentageCut,
+
+                0 AS todayUpCnt,
+                0 AS upCut
+            </otherwise>
+        </choose>
+    </select>
+
+    <resultMap id="TrendMap" type="com.longmaster.platform.dto.statistical.TrendDTO">
+        <result column="stat_dt" property="statDt"/>
+        <result column="user_average" property="userAverage"/>
+        <result column="user_cnt" property="userCnt"/>
+        <result column="user_times" property="userTimes"/>
+    </resultMap>
+
+    <select id="getGroupEventStatTrend" resultMap="TrendMap">
+        SELECT
+
+        <choose>
+            <when test="type == 1">
+                DATE(log_dt) as stat_dt,
+            </when>
+            <when test="type == 2">
+                CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) as stat_dt,
+            </when>
+            <when test="type == 3">
+                CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) as stat_dt,
+            </when>
+            <when test="type == 4">
+                YEAR(log_dt) as stat_dt,
+            </when>
+        </choose>
+
+        count( DISTINCT phone_num ) AS user_cnt,
+        count( phone_num ) AS user_times,
+        ROUND(COALESCE(count( phone_num ) / count( DISTINCT phone_num ), 0), 2) as user_average
+        FROM t_log_task_send_event
+        <where>
+                message_id > ''
+            <if test="appIds.size > 0">
+                and app_id in
+                <foreach item="item" index="index" collection="appIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+
+            <if test="beginDt != null and beginDt != ''">
+                and
+                <choose>
+                    <when test="type == 1">
+                        DATE(log_dt) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 2">
+                        CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 3">
+                        CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 4">
+                        YEAR(log_dt) &gt;= #{beginDt}
+                    </when>
+                </choose>
+            </if>
+
+            <if test="endDt != null and endDt != ''">
+                and
+                <choose>
+                    <when test="type == 1">
+                        DATE(log_dt) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 2">
+                        CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 3">
+                        CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 4">
+                        YEAR(log_dt) &lt;= #{endDt}
+                    </when>
+                </choose>
+            </if>
+        </where>
+        GROUP BY
+        <choose>
+            <when test="type == 1">
+                DATE(log_dt)
+            </when>
+            <when test="type == 2">
+                CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0'))
+            </when>
+            <when test="type == 3">
+                CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0'))
+            </when>
+            <when test="type == 4">
+                YEAR(log_dt)
+            </when>
+        </choose>
+        order by log_dt asc
+    </select>
+
+    <select id="getSceneEventStatTrend" resultMap="TrendMap">
+        SELECT
+
+        <choose>
+            <when test="type == 1">
+                DATE(log_dt) as stat_dt,
+            </when>
+            <when test="type == 2">
+                CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) as stat_dt,
+            </when>
+            <when test="type == 3">
+                CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) as stat_dt,
+            </when>
+            <when test="type == 4">
+                YEAR(log_dt) as stat_dt,
+            </when>
+        </choose>
+
+        count( DISTINCT phone_num ) AS user_cnt,
+        count( phone_num ) AS user_times,
+        ROUND(COALESCE(count( phone_num ) / count( DISTINCT phone_num ), 0), 2) as user_average
+        FROM t_log_scene_message
+        <where>
+            <if test="appIds.size > 0">
+                app_id in
+                <foreach item="item" index="index" collection="appIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+
+            <if test="beginDt != null and beginDt != ''">
+                and
+                <choose>
+                    <when test="type == 1">
+                        DATE(log_dt) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 2">
+                        CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 3">
+                        CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 4">
+                        YEAR(log_dt) &gt;= #{beginDt}
+                    </when>
+                </choose>
+            </if>
+
+            <if test="endDt != null and endDt != ''">
+                and
+                <choose>
+                    <when test="type == 1">
+                        DATE(log_dt) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 2">
+                        CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 3">
+                        CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 4">
+                        YEAR(log_dt) &lt;= #{endDt}
+                    </when>
+                </choose>
+            </if>
+        </where>
+        GROUP BY
+        <choose>
+            <when test="type == 1">
+                DATE(log_dt)
+            </when>
+            <when test="type == 2">
+                CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0'))
+            </when>
+            <when test="type == 3">
+                CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0'))
+            </when>
+            <when test="type == 4">
+                YEAR(log_dt)
+            </when>
+        </choose>
+        order by log_dt asc
+    </select>
+
+    <select id="getMessageTemplateStatTrend" resultMap="TrendMap">
+        SELECT
+
+        <choose>
+            <when test="type == 1">
+                DATE(log_dt) as stat_dt,
+            </when>
+            <when test="type == 2">
+                CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) as stat_dt,
+            </when>
+            <when test="type == 3">
+                CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) as stat_dt,
+            </when>
+            <when test="type == 4">
+                YEAR(log_dt) as stat_dt,
+            </when>
+        </choose>
+
+        count( DISTINCT phone_num ) AS user_cnt,
+        count( phone_num ) AS user_times,
+        ROUND(COALESCE(count( phone_num ) / count( DISTINCT phone_num ), 0), 2) as user_average
+        FROM t_log_message_template_event
+        <where>
+            <if test="appIds.size > 0">
+                app_id in
+                <foreach item="item" index="index" collection="appIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+
+            <if test="beginDt != null and beginDt != ''">
+                and
+                <choose>
+                    <when test="type == 1">
+                        DATE(log_dt) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 2">
+                        CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 3">
+                        CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 4">
+                        YEAR(log_dt) &gt;= #{beginDt}
+                    </when>
+                </choose>
+            </if>
+
+            <if test="endDt != null and endDt != ''">
+                and
+                <choose>
+                    <when test="type == 1">
+                        DATE(log_dt) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 2">
+                        CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 3">
+                        CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 4">
+                        YEAR(log_dt) &lt;= #{endDt}
+                    </when>
+                </choose>
+            </if>
+        </where>
+        GROUP BY
+        <choose>
+            <when test="type == 1">
+                DATE(log_dt)
+            </when>
+            <when test="type == 2">
+                CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0'))
+            </when>
+            <when test="type == 3">
+                CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0'))
+            </when>
+            <when test="type == 4">
+                YEAR(log_dt)
+            </when>
+        </choose>
+        order by log_dt asc
+    </select>
+
+    <select id="getMenuEventStatTrend" resultMap="TrendMap">
+        SELECT
+        <choose>
+            <when test="type == 1">
+                DATE(log_dt) as stat_dt,
+            </when>
+            <when test="type == 2">
+                CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) as stat_dt,
+            </when>
+            <when test="type == 3">
+                CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) as stat_dt,
+            </when>
+            <when test="type == 4">
+                YEAR(log_dt) as stat_dt,
+            </when>
+        </choose>
+
+        count( DISTINCT phone_num ) AS user_cnt,
+        count( phone_num ) AS user_times,
+        ROUND(COALESCE(count( phone_num ) / count( DISTINCT phone_num ), 0), 2) as user_average
+        FROM t_log_receive_message
+        <where>
+        content_type = 5
+            <if test="appIds.size > 0">
+                and app_id in
+                <foreach item="item" index="index" collection="appIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+
+            <if test="beginDt != null and beginDt != ''">
+                and
+                <choose>
+                    <when test="type == 1">
+                        DATE(log_dt) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 2">
+                        CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 3">
+                        CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 4">
+                        YEAR(log_dt) &gt;= #{beginDt}
+                    </when>
+                </choose>
+            </if>
+
+            <if test="endDt != null and endDt != ''">
+                and
+                <choose>
+                    <when test="type == 1">
+                        DATE(log_dt) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 2">
+                        CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 3">
+                        CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 4">
+                        YEAR(log_dt) &lt;= #{endDt}
+                    </when>
+                </choose>
+            </if>
+        </where>
+        GROUP BY
+        <choose>
+            <when test="type == 1">
+                DATE(log_dt)
+            </when>
+            <when test="type == 2">
+                CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0'))
+            </when>
+            <when test="type == 3">
+                CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0'))
+            </when>
+            <when test="type == 4">
+                YEAR(log_dt)
+            </when>
+        </choose>
+        order by log_dt asc
+    </select>
+
+
+    <resultMap id="CruxMap" type="com.longmaster.platform.dto.statistical.CruxDTO">
+        <result column="user_average" property="userAverage"/>
+        <result column="user_average_percentage" property="userAveragePercentage"/>
+        <result column="user_cnt" property="userCnt"/>
+        <result column="user_cnt_percentage" property="userCntPercentage"/>
+        <result column="user_times" property="userTimes"/>
+        <result column="user_times_percentage" property="userTimesPercentage"/>
+    </resultMap>
+
+    <select id="getGroupEventStatCrux" resultMap="CruxMap">
+        SELECT
+        count( DISTINCT phone_num ) AS user_cnt,
+        count( phone_num ) AS user_times,
+        ROUND(COALESCE(count( phone_num ) / count( DISTINCT phone_num ), 0), 2) AS user_average
+        FROM
+        t_log_task_send_event
+        WHERE
+        DATE( log_dt ) = DATE(curdate())
+        and message_id > ''
+
+        <if test="appIds.size > 0">
+            and app_id in
+            <foreach item="item" index="index" collection="appIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getSceneEventStatCrux" resultMap="CruxMap">
+        SELECT
+        count( DISTINCT phone_num ) AS user_cnt,
+        count( phone_num ) AS user_times,
+        ROUND(COALESCE(count( phone_num ) / count( DISTINCT phone_num ), 0), 2) AS user_average
+        FROM
+        t_log_scene_message
+        WHERE
+        DATE( log_dt ) = DATE(curdate())
+
+        <if test="appIds.size > 0">
+            and app_id in
+            <foreach item="item" index="index" collection="appIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getMessageTemplateStatCrux" resultMap="CruxMap">
+        SELECT
+        count( DISTINCT phone_num ) AS user_cnt,
+        count( phone_num ) AS user_times,
+        ROUND(COALESCE(count( phone_num ) / count( DISTINCT phone_num ), 0), 2) AS user_average
+        FROM
+        t_log_message_template_event
+        WHERE
+        DATE( log_dt ) = DATE(curdate())
+
+        <if test="appIds.size > 0">
+            and app_id in
+            <foreach item="item" index="index" collection="appIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getMenuEventStatCrux" resultMap="CruxMap">
+        SELECT
+        count( DISTINCT phone_num ) AS user_cnt,
+        count( phone_num ) AS user_times,
+        ROUND(COALESCE(count( phone_num ) / count( DISTINCT phone_num ), 0), 2) AS user_average
+        FROM
+        t_log_receive_message
+        WHERE
+        DATE( log_dt ) = DATE(curdate()) and content_type = 5
+
+        <if test="appIds.size > 0">
+            and app_id in
+            <foreach item="item" index="index" collection="appIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+
+    <resultMap id="CarrierMap" type="com.longmaster.platform.dto.statistical.CarrierDTO">
+        <result column="carrier_id" property="carrierId"/>
+        <result column="carrier_name" property="carrierName"/>
+        <result column="user_times" property="userTimes"/>
+    </resultMap>
+
+    <select id="getGroupEventStatCarrier" resultMap="CarrierMap">
+        SELECT
+        a.carrier_id,
+        b.name as carrier_name,
+        count( phone_num ) AS user_times
+        FROM t_log_task_send_event a left join t_carrier b on a.carrier_id = b.id
+        <where>
+              message_id > ''
+            <if test="appIds.size > 0">
+              and app_id in
+                <foreach item="item" index="index" collection="appIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+
+            <if test="beginDt != null and beginDt != ''">
+                and
+                <choose>
+                    <when test="type == 1">
+                        DATE(log_dt) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 2">
+                        CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 3">
+                        CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 4">
+                        YEAR(log_dt) &gt;= #{beginDt}
+                    </when>
+                </choose>
+            </if>
+
+            <if test="endDt != null and endDt != ''">
+                and
+                <choose>
+                    <when test="type == 1">
+                        DATE(log_dt) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 2">
+                        CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 3">
+                        CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 4">
+                        YEAR(log_dt) &lt;= #{endDt}
+                    </when>
+                </choose>
+            </if>
+        </where>
+
+        GROUP BY
+        carrier_id
+        ORDER BY
+        log_dt DESC
+    </select>
+
+    <select id="getSceneEventStatCarrier" resultMap="CarrierMap">
+        SELECT
+        a.carrier_id,
+        b.name as carrier_name,
+        count( phone_num ) AS user_times
+        FROM t_log_scene_message a left join t_carrier b on a.carrier_id = b.id
+
+        <where>
+            <if test="appIds.size > 0">
+                app_id in
+                <foreach item="item" index="index" collection="appIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+
+            <if test="beginDt != null and beginDt != ''">
+                and
+                <choose>
+                    <when test="type == 1">
+                        DATE(log_dt) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 2">
+                        CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 3">
+                        CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 4">
+                        YEAR(log_dt) &gt;= #{beginDt}
+                    </when>
+                </choose>
+            </if>
+
+            <if test="endDt != null and endDt != ''">
+                and
+                <choose>
+                    <when test="type == 1">
+                        DATE(log_dt) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 2">
+                        CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 3">
+                        CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 4">
+                        YEAR(log_dt) &lt;= #{endDt}
+                    </when>
+                </choose>
+            </if>
+        </where>
+
+        GROUP BY
+        carrier_id
+        ORDER BY
+        log_dt DESC
+    </select>
+
+    <select id="getMessageTemplateStatCarrier" resultMap="CarrierMap">
+        SELECT
+        a.carrier_id,
+        b.name as carrier_name,
+        count( phone_num ) AS user_times
+        FROM t_log_message_template_event a left join t_carrier b on a.carrier_id = b.id
+
+        <where>
+            <if test="appIds.size > 0">
+                app_id in
+                <foreach item="item" index="index" collection="appIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+
+            <if test="beginDt != null and beginDt != ''">
+                and
+                <choose>
+                    <when test="type == 1">
+                        DATE(log_dt) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 2">
+                        CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 3">
+                        CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 4">
+                        YEAR(log_dt) &gt;= #{beginDt}
+                    </when>
+                </choose>
+            </if>
+
+            <if test="endDt != null and endDt != ''">
+                and
+                <choose>
+                    <when test="type == 1">
+                        DATE(log_dt) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 2">
+                        CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 3">
+                        CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 4">
+                        YEAR(log_dt) &lt;= #{endDt}
+                    </when>
+                </choose>
+            </if>
+        </where>
+
+        GROUP BY
+        carrier_id
+        ORDER BY
+        log_dt DESC
+    </select>
+
+    <select id="getMenuStatCarrier" resultMap="CarrierMap">
+        SELECT
+        a.carrier_id,
+        b.name as carrier_name,
+        count( phone_num ) AS user_times
+        FROM t_log_receive_message a left join t_carrier b on a.carrier_id = b.id
+
+        <where>
+        content_type = 5
+            <if test="appIds.size > 0">
+                and app_id in
+                <foreach item="item" index="index" collection="appIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+
+            <if test="beginDt != null and beginDt != ''">
+                and
+                <choose>
+                    <when test="type == 1">
+                        DATE(log_dt) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 2">
+                        CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 3">
+                        CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 4">
+                        YEAR(log_dt) &gt;= #{beginDt}
+                    </when>
+                </choose>
+            </if>
+
+            <if test="endDt != null and endDt != ''">
+                and
+                <choose>
+                    <when test="type == 1">
+                        DATE(log_dt) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 2">
+                        CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 3">
+                        CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 4">
+                        YEAR(log_dt) &lt;= #{endDt}
+                    </when>
+                </choose>
+            </if>
+        </where>
+
+        GROUP BY
+        carrier_id
+        ORDER BY
+        log_dt DESC
+    </select>
+
+
+    <select id="getReceiveEventStatCrux" resultMap="CruxMap">
+        SELECT
+        count( DISTINCT phone_num ) AS user_cnt,
+        count( phone_num ) AS user_times,
+        ROUND(COALESCE(count( phone_num ) / count( DISTINCT phone_num ), 0), 2) AS user_average
+        FROM
+        t_log_receive_message
+        WHERE
+        DATE( log_dt ) = DATE(curdate()) and content_type in (1, 3, 4)
+
+        <if test="appIds.size > 0">
+            and app_id in
+            <foreach item="item" index="index" collection="appIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getReceiveEventStatTrend" resultMap="TrendMap">
+        SELECT
+
+        <choose>
+            <when test="type == 1">
+                DATE(log_dt) as stat_dt,
+            </when>
+            <when test="type == 2">
+                CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) as stat_dt,
+            </when>
+            <when test="type == 3">
+                CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) as stat_dt,
+            </when>
+            <when test="type == 4">
+                YEAR(log_dt) as stat_dt,
+            </when>
+        </choose>
+
+        count( DISTINCT phone_num ) AS user_cnt,
+        count( phone_num ) AS user_times,
+        ROUND(COALESCE(count( phone_num ) / count( DISTINCT phone_num ), 0), 2) as user_average
+        FROM t_log_receive_message
+        <where>
+            content_type in (1, 3, 4)
+            <if test="appIds.size > 0">
+                and app_id in
+                <foreach item="item" index="index" collection="appIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+
+            <if test="beginDt != null and beginDt != ''">
+                and
+                <choose>
+                    <when test="type == 1">
+                        DATE(log_dt) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 2">
+                        CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 3">
+                        CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 4">
+                        YEAR(log_dt) &gt;= #{beginDt}
+                    </when>
+                </choose>
+            </if>
+
+            <if test="endDt != null and endDt != ''">
+                and
+                <choose>
+                    <when test="type == 1">
+                        DATE(log_dt) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 2">
+                        CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 3">
+                        CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 4">
+                        YEAR(log_dt) &lt;= #{endDt}
+                    </when>
+                </choose>
+            </if>
+        </where>
+        GROUP BY
+        <choose>
+            <when test="type == 1">
+                DATE(log_dt)
+            </when>
+            <when test="type == 2">
+                CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0'))
+            </when>
+            <when test="type == 3">
+                CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0'))
+            </when>
+            <when test="type == 4">
+                YEAR(log_dt)
+            </when>
+        </choose>
+        order by log_dt desc
+    </select>
+
+    <select id="getReceiveEventStatCarrier" resultMap="CarrierMap">
+        SELECT
+        a.carrier_id,
+        b.name as carrier_name,
+        count( phone_num ) AS user_times
+        FROM t_log_receive_message a left join t_carrier b on a.carrier_id = b.id
+        <where>
+            content_type in (1, 3, 4)
+            <if test="appIds.size > 0">
+                and app_id in
+                <foreach item="item" index="index" collection="appIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+
+            <if test="beginDt != null and beginDt != ''">
+                and
+                <choose>
+                    <when test="type == 1">
+                        DATE(log_dt) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 2">
+                        CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 3">
+                        CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) &gt;= #{beginDt}
+                    </when>
+                    <when test="type == 4">
+                        YEAR(log_dt) &gt;= #{beginDt}
+                    </when>
+                </choose>
+            </if>
+
+            <if test="endDt != null and endDt != ''">
+                and
+                <choose>
+                    <when test="type == 1">
+                        DATE(log_dt) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 2">
+                        CONCAT(YEAR(log_dt),'-',LPAD(WEEK(log_dt), 2, '0')) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 3">
+                        CONCAT(YEAR(log_dt),'-',LPAD(MONTH(log_dt), 2, '0')) &lt;= #{endDt}
+                    </when>
+                    <when test="type == 4">
+                        YEAR(log_dt) &lt;= #{endDt}
+                    </when>
+                </choose>
+            </if>
+        </where>
+
+        GROUP BY
+        carrier_id
+        ORDER BY
+        log_dt DESC
+    </select>
+
+    <select id="getGroupPercentageData" resultType="java.util.HashMap">
+        SELECT
+        count( DISTINCT CASE WHEN DATE( log_dt ) = DATE( curdate()) THEN phone_num ELSE NULL END ) as user_cnt_1,
+        count( DISTINCT CASE WHEN DATE( log_dt ) = DATE_SUB( curdate(), INTERVAL 1 DAY) THEN phone_num ELSE NULL END )
+        as user_cnt_2,
+        count( CASE WHEN DATE( log_dt ) = DATE( curdate()) THEN phone_num ELSE NULL END ) AS user_times_1,
+        count( CASE WHEN DATE( log_dt ) = DATE_SUB( curdate(), INTERVAL 1 DAY) THEN phone_num ELSE NULL END ) AS
+        user_times_2
+
+        FROM
+        t_log_task_send_event
+        <where>
+             message_id > '' and
+             app_id IN
+            <foreach item="item" index="index" collection="appIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </where>
+    </select>
+
+    <select id="getMenuPercentageData" resultType="java.util.HashMap">
+        SELECT
+        count( DISTINCT CASE WHEN DATE( log_dt ) = DATE( curdate()) THEN phone_num ELSE NULL END ) as user_cnt_1,
+        count( DISTINCT CASE WHEN DATE( log_dt ) = DATE_SUB( curdate(), INTERVAL 1 DAY) THEN phone_num ELSE NULL END )
+        as user_cnt_2,
+        count( CASE WHEN DATE( log_dt ) = DATE( curdate()) THEN phone_num ELSE NULL END ) AS user_times_1,
+        count( CASE WHEN DATE( log_dt ) = DATE_SUB( curdate(), INTERVAL 1 DAY) THEN phone_num ELSE NULL END ) AS
+        user_times_2
+
+        FROM
+        t_log_receive_message
+        <where>
+            content_type = 5 and app_id IN
+            <foreach item="item" index="index" collection="appIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </where>
+    </select>
+
+    <select id="getMessageTemplatePercentageData" resultType="java.util.HashMap">
+        SELECT
+        count( DISTINCT CASE WHEN DATE( log_dt ) = DATE( curdate()) THEN phone_num ELSE NULL END ) as user_cnt_1,
+        count( DISTINCT CASE WHEN DATE( log_dt ) = DATE_SUB( curdate(), INTERVAL 1 DAY) THEN phone_num ELSE NULL END )
+        as user_cnt_2,
+        count( CASE WHEN DATE( log_dt ) = DATE( curdate()) THEN phone_num ELSE NULL END ) AS user_times_1,
+        count( CASE WHEN DATE( log_dt ) = DATE_SUB( curdate(), INTERVAL 1 DAY) THEN phone_num ELSE NULL END ) AS
+        user_times_2
+
+        FROM
+        t_log_message_template_event
+        <where>
+            app_id IN
+            <foreach item="item" index="index" collection="appIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </where>
+    </select>
+
+    <select id="getReceivePercentageData" resultType="java.util.HashMap">
+        SELECT
+        count( DISTINCT CASE WHEN DATE( log_dt ) = DATE( curdate()) THEN phone_num ELSE NULL END ) as user_cnt_1,
+        count( DISTINCT CASE WHEN DATE( log_dt ) = DATE_SUB( curdate(), INTERVAL 1 DAY) THEN phone_num ELSE NULL END )
+        as user_cnt_2,
+        count( CASE WHEN DATE( log_dt ) = DATE( curdate()) THEN phone_num ELSE NULL END ) AS user_times_1,
+        count( CASE WHEN DATE( log_dt ) = DATE_SUB( curdate(), INTERVAL 1 DAY) THEN phone_num ELSE NULL END ) AS
+        user_times_2
+
+        FROM
+        t_log_receive_message
+        <where>
+            content_type in (1, 3, 4) and app_id IN
+            <foreach item="item" index="index" collection="appIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </where>
+    </select>
+
+    <select id="getScenePercentageData" resultType="java.util.HashMap">
+        SELECT
+        count( DISTINCT CASE WHEN DATE( log_dt ) = DATE( curdate()) THEN phone_num ELSE NULL END ) as user_cnt_1,
+        count( DISTINCT CASE WHEN DATE( log_dt ) = DATE_SUB( curdate(), INTERVAL 1 DAY) THEN phone_num ELSE NULL END )
+        as user_cnt_2,
+        count( CASE WHEN DATE( log_dt ) = DATE( curdate()) THEN phone_num ELSE NULL END ) AS user_times_1,
+        count( CASE WHEN DATE( log_dt ) = DATE_SUB( curdate(), INTERVAL 1 DAY) THEN phone_num ELSE NULL END ) AS
+        user_times_2
+
+        FROM
+        t_log_scene_message
+        <where>
+             app_id IN
+            <foreach item="item" index="index" collection="appIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </where>
+    </select>
+
+    <select id="selectSendAndReceiveLog" resultType="java.util.HashMap">
+        SELECT * FROM
+            (
+                (
+                    SELECT t1.phone_num,
+                           t1.carrier_id,
+                           t3.`name` AS carrier_name,
+                           '上行' AS 'send_type', 1 AS 'status', '5G消息' AS 'message_type',
+                            t1.content, DATE_FORMAT(t1.log_dt, '%Y-%c-%d %H:%i:%s') as log_dt,
+                           CONCAT(t1.app_id, '') as app_id,
+                           t2.`name` AS app_name,
+                           CONCAT(t2.`customer_id`, '') as customer_id,
+                           t4.name AS customer_name,
+                           '' AS task_id,
+                           '' AS task_name,
+                           '' AS message_template_id,
+                           '' AS message_template_type,
+                           '' AS message_template_name
+
+                    FROM t_log_receive_message t1
+                             LEFT JOIN t_application t2 ON t1.`app_id` = t2.`id`
+                             LEFT JOIN t_carrier t3 ON t1.`carrier_id` = t3.`id`
+                             LEFT JOIN t_customer t4 ON t2.`customer_id` = t4.`id`
+
+                    <where>
+                        <if test="params.customerId!=null and params.customerId!=''">
+                            and t4.`id` = #{params.customerId}
+                        </if>
+                        <if test="params.appId!=null and params.appId!=''">
+                            and t1.`app_id` = #{params.appId}
+                        </if>
+                        <if test="params.phoneNum!=null and params.phoneNum!=''">
+                            and t1.`phone_num` = #{params.phoneNum}
+                        </if>
+                    </where>
+
+                )
+                UNION ALL
+                (
+                    SELECT
+                        t1.phone_num,
+                        t1.`carrier_id`,
+                        t3.`name` AS carrier_name,
+                        '下行' AS 'send_type',
+                         COALESCE(t2.`status`, NULL, 0) AS `status`,
+                        '5G消息' AS 'message_type',
+                            t1.original as content,
+                           DATE_FORMAT(t1.log_dt, '%Y-%c-%d %H:%i:%s') as log_dt,
+                           CONCAT(t1.app_id,'') as app_id,
+                           t4.`name` AS app_name,
+                           CONCAT(t4.`customer_id`,'') as customer_id,
+                           t5.name AS customer_name,
+                          CONCAT(t6.task_id,'') as task_id,
+                           t6.name AS task_name,
+                          CONCAT(t6.message_template_id, '') as message_template_id,
+                           t6.message_template_type,
+                           t6.message_template_name
+
+                    FROM t_log_send_message t1 LEFT JOIN t_log_send_message_status t2 ON t1.message_id = t2.message_id AND t1.phone_num = t2.phone_num
+                                               LEFT JOIN t_carrier t3 ON t1.`carrier_id` = t3.`id`
+                                               LEFT JOIN t_application t4 ON t1.`app_id` = t4.`id`
+                                               LEFT JOIN t_customer t5 ON t4.`customer_id` = t5.`id`
+                                               LEFT JOIN t_log_task_send_event t6 ON t1.message_id = t6.message_id  AND t1.phone_num = t6.phone_num
+                <where>
+                    <if test="params.customerId!=null and params.customerId!=''">
+                        and t5.`id` = #{params.customerId}
+                    </if>
+                    <if test="params.appId!=null and params.appId!=''">
+                        and t1.`app_id` = #{params.appId}
+                    </if>
+                    <if test="params.phoneNum!=null and params.phoneNum!=''">
+                        and t1.`phone_num` = #{params.phoneNum}
+                    </if>
+                </where>
+                )
+            ) AS tb ORDER BY log_dt DESC
+    </select>
+
+    <select id="selectChatLog" resultType="java.util.HashMap">
+        SELECT * FROM
+            (
+                (SELECT
+                     '1' as send_type,
+                     CONCAT(t1.app_id,'') as app_id,
+                     t1.content,
+                     DATE_FORMAT(t1.log_dt, '%Y-%c-%d %T:%f') AS log_dt,
+                     1 AS 'status',
+                     t1.phone_num
+                 FROM t_log_receive_message t1
+            <where>
+                <if test="params.appId!=null and params.appId!=''">
+                    and t1.`app_id` = #{params.appId}
+                </if>
+                <if test="params.phoneNum!=null and params.phoneNum!=''">
+                    and t1.`phone_num` = #{params.phoneNum}
+                </if>
+            </where>
+                )
+                 UNION ALL
+                (
+                    SELECT
+                        '2' as send_type,
+                        CONCAT(t1.app_id,'') as app_id,
+                        t1.original AS content,
+                        DATE_FORMAT(t1.log_dt, '%Y-%c-%d %T:%f') AS log_dt,
+                        MAX(t2.status) AS `status`,
+                        t1.phone_num
+                    FROM
+                        t_log_send_message t1 LEFT JOIN t_log_send_message_status t2 ON t1.message_id = t2.message_id
+            <where>
+                <if test="params.appId!=null and params.appId!=''">
+                    and t1.`app_id` = #{params.appId}
+                </if>
+                <if test="params.phoneNum!=null and params.phoneNum!=''">
+                    and t1.`phone_num` = #{params.phoneNum}
+                </if>
+                <if test="params.messageId!=null and params.messageId!=''">
+                    and t1.`message_id` = #{params.messageId}
+                </if>
+            </where>
+        GROUP BY t1.message_id)
+            ) AS tb
+        ORDER BY tb.log_dt DESC
+    </select>
+
+</mapper>

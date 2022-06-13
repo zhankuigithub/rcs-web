@@ -1,0 +1,11 @@
+server:
+  port: 9699
+
+spring:
+  application:
+    name: rcs-platform
+  profiles:
+    active: @profiles.active@
+  main:
+    allow-bean-definition-overriding: true
+

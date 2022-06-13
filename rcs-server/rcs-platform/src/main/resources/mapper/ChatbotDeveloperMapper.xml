@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.ChatbotDeveloperMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.ChatbotDeveloper">
+        <result column="id" property="id" />
+        <result column="logic_del" property="logicDel" />
+        <result column="insert_dt" property="insertDt" />
+        <result column="update_dt" property="updateDt" />
+        <result column="chatbot_id" property="chatBotId" />
+        <result column="token" property="token" />
+        <result column="protocol" property="protocol" />
+        <result column="notify_url" property="notifyUrl" />
+        <result column="enable" property="enable" />
+        <result column="app_id" property="appId" />
+        <result column="app_key" property="appKey" />
+        <result column="status" property="status" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id,
+        logic_del,
+        insert_dt,
+        update_dt,
+        chatbot_id, token, protocol, notify_url, enable, app_id, app_key, status
+    </sql>
+    <select id="selectDeveloperConfig" resultType="com.longmaster.platform.dto.chatbot.ChatBotDeveloperDTO">
+       SELECT
+            a.*,
+            b.access_tag_no
+        FROM
+            t_chatbot_developer a
+            LEFT JOIN t_chatbot b ON a.chatbot_id = b.id
+    </select>
+
+</mapper>

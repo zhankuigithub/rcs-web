@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.MaterialMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.Material">
+        <result column="id" property="id"/>
+        <result column="logic_del" property="logicDel"/>
+        <result column="insert_dt" property="insertDt"/>
+        <result column="update_dt" property="updateDt"/>
+        <result column="customer_id" property="customerId"/>
+        <result column="app_id" property="appId"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="original_url" property="originalUrl"/>
+        <result column="source_url" property="sourceUrl"/>
+        <result column="status" property="status"/>
+        <result column="attribution" property="attribution"/>
+        <result column="remark" property="remark"/>
+        <result column="is_thumb" property="isThumb"/>
+        <result column="thumb_id" property="thumbId"/>
+        <result column="content" property="content"/>
+    </resultMap>
+
+    <resultMap id="PageResultMap" type="com.longmaster.platform.dto.material.MaterialDTO" extends="BaseResultMap">
+        <result column="customerId" property="customerId"/>
+        <result column="customerName" property="customerName"/>
+        <result column="appId" property="appId"/>
+        <result column="appName" property="appName"/>
+        <result column="thumbnailUrl" property="thumbnailUrl"/>
+        <collection property="auditRecords" ofType="com.longmaster.platform.dto.material.MaterialAuditRecordDTO">
+            <result column="carrierId" property="carrierId"/>
+            <result column="carrierName" property="carrierName"/>
+            <result column="auditStatus" property="status"/>
+        </collection>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id,
+        attribution,
+        logic_del,
+        insert_dt,
+        update_dt,
+        customer_id, app_id, `name`, `type`, source_url, status, remark, is_thumb,  thumb_id
+    </sql>
+
+
+    <select id="selectMaterialByIdStr" resultMap="BaseResultMap">
+        select
+        id, app_id, name, type ,source_url, thumb_id, is_thumb
+        from
+        t_material
+        <where>
+            status = 1 and logic_del = 0
+            and id in (${idStr})
+        </where>
+    </select>
+
+
+    <select id="pageSelect" resultMap="PageResultMap">
+        SELECT
+        a.*,
+        b.id appId,
+        b.`name` appName,
+        c.id customerId,
+        c.`name` customerName,
+        d.source_url thumbnailUrl
+        FROM t_material a
+        LEFT JOIN t_application b ON a.app_id = b.id
+        LEFT JOIN t_customer c ON a.customer_id = c.id
+        LEFT JOIN t_material d on a.thumb_id = d.id
+
+        <where>
+            a.logic_del = 0
+            <if test="ew.appId != null and ew.appId != ''">
+                and a.app_id = #{ew.appId,jdbcType=BIGINT}
+            </if>
+
+            <if test="ew.isThumb != null">
+                and a.is_thumb = #{ew.isThumb}
+            </if>
+
+            <if test="ew.customerId != null and ew.customerId != '' ">
+                and a.customer_id = #{ew.customerId,jdbcType=BIGINT}
+            </if>
+            <if test="ew.type != null and ew.type != ''">
+                and a.`type` = #{ew.type,jdbcType=INTEGER}
+            </if>
+            <if test="ew.name != null and  ew.name != '' ">
+                and a.`name` like '%${ew.name}%'
+            </if>
+        </where>
+        order by a.insert_dt desc
+    </select>
+
+    <select id="selectOneMaterial" resultType="long">
+        SELECT id FROM t_material WHERE original_url = #{originalUrl} AND is_thumb = #{isThumb} ORDER BY insert_dt desc limit 1
+    </select>
+
+    <select id="item" resultMap="PageResultMap">
+        SELECT
+            a.*,
+            b.id appId,
+            b.`name` appName,
+            c.id customerId,
+            c.`name` customerName,
+            d.source_url thumbnailUrl
+        FROM
+            t_material a
+                LEFT JOIN t_application b ON a.app_id = b.id
+                LEFT JOIN t_customer c ON a.customer_id = c.id
+                LEFT JOIN t_material d ON a.thumb_id = d.id
+        WHERE
+            a.logic_del = 0
+          AND a.id = #{id}
+    </select>
+
+</mapper>

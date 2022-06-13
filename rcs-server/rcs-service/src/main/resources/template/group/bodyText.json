@@ -1,0 +1,88 @@
+{
+  "message": {
+    "generalPurposeCardCarousel": {
+      "layout": {
+        "cardWidth": "MEDIUM_WIDTH",
+        "style": ""
+      },
+      "content": [<#list  UrlLists  as urlList>
+        {
+          "media": {
+            "mediaUrl": "${urlList.mediaUrl}",
+            "mediaContentType": "${urlList.mediaContentType}",
+            "thumbnailUrl":"${urlList.thumbnailUrl}",
+            "thumbnailContentType":"${urlList.thumbnailContentType}",
+            "thumbnailFileSize":"${urlList.thumbnailFileSize}",
+            "height":"MEDIUM_HEIGHT"
+          },
+          "title": "${urlList.title}",
+          "description": "${urlList.description}",
+          "suggestions": [<#list urlList.suggestions  as item><#if item.type==2>{
+              "action": {
+                "displayText": "${item.display}",
+                "postback": {
+                  "data": "${item.postback}"
+                },
+                "urlAction": {
+                  "openUrl": {
+                    "url": "${item.url}"
+                  }
+                }
+              }
+            }<#elseif item.type==3>{
+              "action":{
+                "dialerAction":{
+                  "dialPhoneNumber":{
+                    "phoneNumber":"${item.phone}"
+                  }
+                },
+                "displayText":"${item.display}",
+                "postback":{
+                  "data":"${item.postback}"
+                }
+              }
+            }<#elseif item.type==4>{
+              "action":{
+                "mapAction":{
+                  "showLocation":{
+                    "location":{
+                      "latitude":"${item.showLocation.location.latitude}",
+                      "longitude":"${item.showLocation.location.longitude}",
+                      "label":"${item.showLocation.location.label}"
+                    },
+                    "fallbackUrl":"${item.showLocation.fallbackUrl}"
+                  }
+                },
+                "displayText":"${item.display}",
+                "postback":{
+                  "data":"${item.postback}"
+                }
+              }
+            }<#elseif item.type==5>{
+              "action":{
+                "calendarAction":{
+                  "createCalendarEvent":{
+                    "startTime":"${item.calendarEvent.startTime}",
+                    "endTime":"${item.calendarEvent.endTime}",
+                    "title":"${item.calendarEvent.title}",
+                    "description":"${item.calendarEvent.description}"
+                  }
+                },
+                "displayText":"${item.display}",
+                "postback":{
+                  "data":"${item.postback}"
+                }
+              }
+            }<#else>{
+              "reply": {
+                "displayText": "${item.display}",
+                "postback": {
+                  "data": "${item.postback}"
+                }
+              }
+            }</#if><#if item_has_next>,</#if></#list>]
+          }<#if  urlList_has_next >,</#if></#list>
+      ]
+    }
+  }
+}

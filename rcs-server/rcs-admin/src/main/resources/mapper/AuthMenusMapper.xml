@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.admin.mapper.AuthMenusMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.admin.entity.AuthMenus">
+        <id column="id" property="id"/>
+        <result column="pid" property="pid"/>
+        <result column="path" property="path"/>
+        <result column="title" property="title"/>
+        <result column="icon" property="icon"/>
+        <result column="sort" property="sort"/>
+        <result column="operate" property="operate"/>
+        <result column="status" property="status"/>
+        <result column="insert_dt" property="insertDt"/>
+        <result column="update_dt" property="updateDt"/>
+        <result column="remark" property="remark"/>
+        <result column="component" property="component"/>
+        <result column="hidden" property="hidden"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, pid, path, title, icon, sort, operate, status, insert_dt, update_dt, remark, component, hidden
+    </sql>
+    <!--查询菜单-->
+    <select id="getMenusTagRole" resultType="com.longmaster.admin.dto.auth.PermissionMenusDTO">
+        SELECT
+        a.*,
+        b.id rolePermissionId,
+        b.permissions
+        FROM
+        t_auth_menus a
+        <if test="isAdmin == true ">
+            LEFT JOIN t_auth_role_permission b ON a.id = b.menus_id and b.role_id = #{roleId}
+        </if>
+        <if test="isAdmin == false ">
+            RIGHT JOIN t_auth_role_permission b ON a.id = b.menus_id and b.role_id = #{roleId}
+        </if>
+        where a.status = 0
+        <if test="parentId != null">
+            and a.pid = #{parentId}
+        </if>
+        <if test="parentId == null">
+            and a.pid is NULL
+        </if>
+        order by a.sort
+    </select>
+</mapper>

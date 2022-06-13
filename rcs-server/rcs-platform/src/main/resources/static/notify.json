@@ -1,0 +1,37 @@
+{
+  "userPhones": [
+    "${phone}"
+  ],
+  "carrierId": "${carrierId}",
+  "chatBotId": "${chatBotId}",
+  "type": "${type}",
+  "content": [
+    {
+      "title": "${title}",
+      "description": "${description}",
+      "suggestions": [
+        {
+          "action": {
+            "displayText": "${displayText}",
+            "urlAction": {
+              "openUrl": {
+                "url": "${openUrl}",
+                "application": "webview"
+              }
+            }
+          }
+        }
+      ],
+      "file": {
+        "url": "${fileUrl}",
+        "contentType": "image/jpg",
+        "fileSize": "109643"
+      },
+      "thumb": {
+        "url": "${fileUrl}",
+        "contentType": "image/jpg",
+        "fileSize": "109643"
+      }
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.NoticeMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.Notice">
+        <result column="id" property="id"/>
+        <result column="type" property="type"/>
+        <result column="customer_ids" property="customerIds"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="weight" property="weight"/>
+        <result column="status" property="status"/>
+        <result column="logic_del" property="logicDel"/>
+        <result column="insert_dt" property="insertDt"/>
+        <result column="update_dt" property="updateDt"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id
+        ,
+        type,
+        customer_ids,
+        title,
+        content,
+        weight,
+        status,
+        insert_dt
+    </sql>
+
+    <select id="pageSelect" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"></include> from t_notice
+        <where>
+            logic_del = 0
+            <if test="ew.title != null and ew.title !=''">
+                and title '%${ew.title}%'
+            </if>
+
+            <if test="ew.type != null and ew.type !=''">
+                and type = #{type}
+            </if>
+        </where>
+        order by insert_dt desc
+    </select>
+
+    <select id="queryList" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"></include> FROM t_notice WHERE type = 1 AND logic_del = 0
+        <if test="customerId.length == 19">
+            UNION ALL
+            SELECT <include refid="Base_Column_List"></include> FROM t_notice WHERE type = 2 AND logic_del = 0 AND
+            customer_ids like '%${customerId}%'
+        </if>
+        ORDER BY insert_dt desc
+    </select>
+
+</mapper>

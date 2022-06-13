@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<msg:outboundMessageRequest xmlns:msg="urn:oma:xml:rest:netapi:messaging:1">
+    ${destinationAddress}
+    <senderAddress>${senderAddress}</senderAddress>
+    <senderName>${senderName}</senderName>
+    <contentType>application/vnd.gsma.botmessage.v1.0+json</contentType>
+    <conversationID>${conversationId}</conversationID>
+    <contributionID>${contributionId}</contributionID>
+    <bodyText><![CDATA[
+    ${cardMany}
+]]></bodyText>
+    <storeSupported>false</storeSupported>
+    <reportRequest>Sent</reportRequest>
+    <reportRequest>Delivered</reportRequest>
+    <reportRequest>Displayed</reportRequest>
+    <reportRequest>Failed</reportRequest>
+    <reportRequest>SMS</reportRequest>
+    <fallbackSupported>${fallbackSupported?c}</fallbackSupported>
+    <fallbackContentType>text/plain</fallbackContentType>
+    <fallbackContentEncoding>utf8</fallbackContentEncoding>
+    <rcsBodyText>${rcsBodyText}</rcsBodyText>
+</msg:outboundMessageRequest>

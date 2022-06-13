@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.LogReceiveMessageMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.LogReceiveMessage">
+        <result column="id" property="id"/>
+        <result column="message_id" property="messageId"/>
+        <result column="chatbot_id" property="chatBotId"/>
+        <result column="app_id" property="appId"/>
+        <result column="carrier_id" property="carrierId"/>
+        <result column="phone_num" property="phoneNum"/>
+        <result column="content_type" property="contentType"/>
+        <result column="content" property="content"/>
+        <result column="payload" property="payload"/>
+        <result column="menu_id" property="menuId"/>
+        <result column="is_keyword" property="isKeyword"/>
+        <result column="log_dt" property="logDt"/>
+    </resultMap>
+
+    <resultMap id="LogReceiveResultMap" type="com.longmaster.platform.dto.receive.LogReceiveMessageDTO">
+        <result column="app_name" property="appName"/>
+        <result column="carrier_name" property="carrierName"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id,
+        message_id,
+        chatbot_id,
+        app_id,
+        carrier_id,
+        phone_num,
+        content_type,
+        content,
+        payload,
+        menu_id,
+        is_keyword,
+        log_dt
+    </sql>
+
+    <select id="pageSelect" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"></include> from t_log_receive_message
+        <where>
+            <if test="ew.appId != null and ew.appId !=''">
+                app_id = #{ew.appId}
+            </if>
+            <if test="ew.contentType != null and ew.contentType !=''">
+                and content_type = #{ew.contentType}
+            </if>
+        </where>
+        order by log_dt desc
+    </select>
+
+    <select id="selectReceiveEventItems" resultMap="LogReceiveResultMap">
+        select
+        a.id,
+        a.message_id,
+        a.chatbot_id,
+        a.app_id,
+        a.carrier_id,
+        a.phone_num,
+        a.content_type,
+        a.content,
+        a.payload,
+        a.log_dt,
+        b.name as app_name,
+        c.name as carrier_name
+        from t_log_receive_message a left join t_application b on a.app_id = b.id left join t_carrier c on a.carrier_id = c.id
+        <where>
+
+            content_type in (1, 3, 4)
+
+            <if test="ew.appIds.size() > 0">
+                and app_id in
+                <foreach item="item" index="index" collection="ew.appIds"
+                         open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+
+            <if test="ew.carrierId != null and ew.carrierId !=''">
+                and carrier_id = #{ew.carrierId}
+            </if>
+
+            <if test="ew.phone != null and ew.phone !=''">
+                and phone_num like '%${ew.phone}%'
+            </if>
+
+            <if test="ew.beginDt != null and ew.beginDt !=''">
+                and DATE(log_dt) &gt;= #{ew.beginDt}
+            </if>
+
+            <if test="ew.endDt != null and ew.endDt !=''">
+                and DATE(log_dt) &lt;= #{ew.endDt}
+            </if>
+
+        </where>
+        order by log_dt desc
+    </select>
+
+    <select id="selectAllMenuItemClickItems" resultType="com.longmaster.platform.entity.MenuItemClickEntity">
+        SELECT menu_id as menuId,
+               count(phone_num) as clickCnt,
+               count(DISTINCT phone_num) as clickUsers,
+               count(phone_num) /count(DISTINCT phone_num) as clickAverage
+        FROM t_log_receive_message
+        WHERE content_type = 5
+          AND app_id = #{appId}
+          AND carrier_id = #{carrierId}
+          AND DATE(log_dt) = CURRENT_DATE
+        GROUP BY menu_id
+        ORDER BY log_dt DESC
+    </select>
+
+</mapper>

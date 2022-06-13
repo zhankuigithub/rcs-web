@@ -1,0 +1,10 @@
+server:
+  port: 9090
+
+spring:
+  application:
+    name: rcs-gateway
+  profiles:
+    active: @profiles.active@
+  main:
+    allow-bean-definition-overriding: true

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.admin.mapper.AuthRolesMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.admin.entity.AuthRoles">
+        <id column="id" property="id"/>
+        <result column="code" property="code"/>
+        <result column="role_name" property="roleName"/>
+        <result column="status" property="status"/>
+        <result column="insert_dt" property="insertDt"/>
+        <result column="update_dt" property="updateDt"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, code, role_name, status, insert_dt, update_dt
+    </sql>
+
+    <select id="getAdminCarrierMap" resultType="java.util.HashMap">
+        SELECT
+        t1.admin_id,
+        t1.role_id,
+        t2.carrier_ids,
+        t2.client_ids
+        FROM
+        t_auth_admin_role t1
+        LEFT JOIN t_auth_roles t2 ON t1.role_id = t2.id
+    </select>
+
+</mapper>

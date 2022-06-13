@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.MaterialAuditRecordMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.MaterialAuditRecord">
+        <result column="id" property="id"/>
+        <result column="insert_dt" property="insertDt"/>
+        <result column="update_dt" property="updateDt"/>
+        <result column="material_id" property="materialId"/>
+        <result column="carrier_id" property="carrierId"/>
+        <result column="chatbot_id" property="chatBotId"/>
+        <result column="status" property="status"/>
+        <result column="review_data" property="reviewData"/>
+        <result column="upload_mode" property="uploadMode"/>
+        <result column="material_url" property="materialUrl"/>
+        <result column="content_type" property="contentType"/>
+        <result column="file_size" property="fileSize"/>
+        <result column="until" property="until"/>
+        <result column="file_name" property="fileName"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id,
+        insert_dt,
+        update_dt,
+        material_id, carrier_id, chatbot_id, status, review_data, upload_mode, material_url,content_type, file_size, until, file_name, tid
+    </sql>
+
+
+    <select id="selectMaterialAuditRecord" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from
+        t_material_audit_record
+        <where>
+            material_id = #{materialId} and status = 1 and chatbot_id = #{chatBotId}
+        </where>
+    </select>
+
+    <insert id="saveMaterialAuditRecord">
+        insert into t_material_audit_record (tid, material_id, carrier_id, chatbot_id, status, review_data, upload_mode,
+                                             material_url, content_type, file_name, until, file_size,
+                                             insert_dt, update_dt)
+            value (#{tid}, #{materialId}, #{carrierId}, #{chatBotId}, #{status}, '', #{uploadMode}, #{materialUrl}, #{contentType}, #{fileName}, #{until}, #{fileSize}, now(), now())
+    </insert>
+
+    <update id="updateMaterialAuditRecordByTid">
+        update t_material_audit_record
+        set material_url = #{materialUrl},
+            content_type = #{contentType},
+            file_name    = #{fileName},
+            until        = #{until},
+            file_size    = #{fileSize},
+            status       = 1,
+            update_dt    = now()
+        where tid = #{tid}
+    </update>
+
+    <update id="updateMaterialAuditRecordByUrl">
+        update t_material_audit_record
+        set status      = 1,
+            review_data = #{reviewData}
+        where material_url = #{url}
+    </update>
+
+    <select id="getAuditStatusByIds" resultType="java.util.HashMap">
+        SELECT COALESCE
+        ( a.status, 3 ) AS status,
+        b.id AS carrier_id,
+        b.NAME AS carrier_name
+        FROM
+        ( SELECT
+        CASE COUNT(material_id)
+        WHEN
+        <choose>
+            <when test="materialIds.size() > 0">
+                ${materialIds.size}
+            </when>
+            <otherwise>
+                1
+            </otherwise>
+        </choose>
+        then (CASE max(status) WHEN 2 then 2 else min(status) END) ELSE 3 end as status,
+        carrier_id
+        FROM
+        t_material_audit_record
+        WHERE
+        <if test="materialIds.size() > 0">
+            material_id in
+            <foreach item="item" index="index" collection="materialIds"
+                     open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        GROUP BY
+        carrier_id) AS a
+        RIGHT JOIN ( SELECT id, name FROM t_carrier WHERE status = 0
+        AND
+        <choose>
+            <when test="carrierIds.size() > 0">
+                id in
+                <foreach item="item" index="index" collection="carrierIds"
+                         open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </when>
+            <otherwise>
+                id = 0
+            </otherwise>
+        </choose>
+        )
+        AS b ON a.carrier_id = b.id
+    </select>
+
+    <select id="getAuditStatusById" resultType="java.util.HashMap">
+        SELECT COALESCE
+        ( a.status, 3 ) AS status,
+        b.id AS carrier_id,
+        b.NAME AS carrier_name,
+        CASE
+        WHEN a.until IS NULL THEN
+        TRUE
+        WHEN a.until IS NOT NULL
+        AND a.until > now() THEN
+        TRUE ELSE FALSE
+        END AS effect,
+        a.until AS until
+        FROM
+        (SELECT status, carrier_id, until FROM t_material_audit_record  WHERE material_id = #{materialId}) AS a
+        RIGHT JOIN ( SELECT id, name FROM t_carrier WHERE status = 0
+        AND
+        <choose>
+            <when test="carrierIds.size() > 0">
+                id in
+                <foreach item="item" index="index" collection="carrierIds"
+                         open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </when>
+            <otherwise>
+                id = 0
+            </otherwise>
+        </choose>
+        )
+        AS b ON a.carrier_id = b.id
+    </select>
+
+    <select id="selectMaterialUrl" resultType="String">
+        SELECT material_url
+        FROM t_material_audit_record
+        WHERE material_id = #{materialId}
+          AND chatbot_id = #{chatBotId}
+        ORDER BY insert_dt DESC LIMIT 1
+    </select>
+
+    <delete id="deleteRecord">
+        delete
+        from t_material_audit_record
+        where id = #{id}
+    </delete>
+
+</mapper>

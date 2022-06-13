@@ -1,0 +1,12 @@
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 10.254.200.171:8848
+        namespace: 3d538c62-8529-4179-840c-93f5ace9c09c
+        group: RCS_GROUP
+      config:
+        server-addr: 10.254.200.171:8848
+        file-extension: yml
+        namespace: 3d538c62-8529-4179-840c-93f5ace9c09c
+        group: RCS_GROUP

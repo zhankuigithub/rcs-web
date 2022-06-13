@@ -1,0 +1,100 @@
+{
+  "id": "",
+  "name": "",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "7419",
+      "name": "关键词",
+      "font_class": "guanjianci",
+      "unicode": "f0293",
+      "unicode_decimal": 983699
+    },
+    {
+      "icon_id": "249352",
+      "name": "工作流程图",
+      "font_class": "gongzuoliuchengtu",
+      "unicode": "f0310",
+      "unicode_decimal": 983824
+    },
+    {
+      "icon_id": "909111",
+      "name": "i-触发条件",
+      "font_class": "hongfatiaojian",
+      "unicode": "e652",
+      "unicode_decimal": 58962
+    },
+    {
+      "icon_id": "2053206",
+      "name": "消息模板",
+      "font_class": "xiaoximoban",
+      "unicode": "e6f4",
+      "unicode_decimal": 59124
+    },
+    {
+      "icon_id": "4143524",
+      "name": "返回",
+      "font_class": "fanhui",
+      "unicode": "e60f",
+      "unicode_decimal": 58895
+    },
+    {
+      "icon_id": "4662756",
+      "name": "答案",
+      "font_class": "daan",
+      "unicode": "e630",
+      "unicode_decimal": 58928
+    },
+    {
+      "icon_id": "4889699",
+      "name": "开始",
+      "font_class": "kaishi",
+      "unicode": "e614",
+      "unicode_decimal": 58900
+    },
+    {
+      "icon_id": "7038155",
+      "name": "按钮",
+      "font_class": "anniu",
+      "unicode": "e642",
+      "unicode_decimal": 58946
+    },
+    {
+      "icon_id": "14219930",
+      "name": "场景",
+      "font_class": "changjing",
+      "unicode": "e755",
+      "unicode_decimal": 59221
+    },
+    {
+      "icon_id": "15765352",
+      "name": "删 除",
+      "font_class": "shanchu",
+      "unicode": "e696",
+      "unicode_decimal": 59030
+    },
+    {
+      "icon_id": "17521469",
+      "name": "撤销左",
+      "font_class": "chexiaozuo",
+      "unicode": "e604",
+      "unicode_decimal": 58884
+    },
+    {
+      "icon_id": "17521470",
+      "name": "撤销右",
+      "font_class": "chexiaoyou",
+      "unicode": "e605",
+      "unicode_decimal": 58885
+    },
+    {
+      "icon_id": "18811984",
+      "name": "保存",
+      "font_class": "baocun",
+      "unicode": "e628",
+      "unicode_decimal": 58920
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<msg:outboundMessageRequest xmlns:msg="urn:oma:xml:rest:netapi:messaging:1">
+    ${destinationAddress}
+    <senderAddress>${senderAddress}</senderAddress>
+    <contentType>application/vnd.gsma.rcs-ft-http+xml</contentType>
+    <conversationID>${conversationId}</conversationID>
+    <contributionID>${contributionId}</contributionID>
+    <bodyText><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<file
+    xmlns="urn:gsma:params:xml:ns:rcs:rcs:fthttp">
+    <file-info type="file">
+        <file-size>${fileSize}</file-size>
+        <file-name>test</file-name>
+        <content-type>${fileType}</content-type>
+        <data
+url="${fileUrl}" until="null"/>
+    </file-info>
+</file>
+]]></bodyText>
+    <storeSupported>false</storeSupported>
+    <reportRequest>Delivered</reportRequest>
+    <reportRequest>Displayed</reportRequest>
+    <reportRequest>Failed</reportRequest>
+    <reportRequest>Sent</reportRequest>
+    <reportRequest>SMS</reportRequest>
+    <fallbackSupported>${fallbackSupported?c}</fallbackSupported>
+    <fallbackContentType>text/plain</fallbackContentType>
+    <fallbackContentEncoding>utf8</fallbackContentEncoding>
+    <rcsBodyText>${rcsBodyText}</rcsBodyText>
+</msg:outboundMessageRequest>

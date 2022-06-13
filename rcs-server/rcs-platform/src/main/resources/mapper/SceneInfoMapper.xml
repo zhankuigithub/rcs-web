@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.SceneInfoMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.SceneInfo">
+        <result column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="app_id" property="appId"/>
+        <result column="status" property="status"/>
+        <result column="payload" property="payload"/>
+        <result column="insert_dt" property="insertDt"/>
+        <result column="update_dt" property="updateDt"/>
+    </resultMap>
+
+    <update id="updateScene">
+        update t_scene_info set status = #{status} where id = #{id}
+    </update>
+
+    <select id="pageSelect" resultMap="BaseResultMap">
+        select
+        id, name, app_id, status, payload, insert_dt, update_dt
+        from
+        t_scene_info
+        <where>
+            <if test="ew.appId != null and ew.appId != ''">
+                and app_id = #{ew.appId}
+            </if>
+
+            <if test="ew.name != null and  ew.name != '' ">
+                and name like concat('%', #{ew.name}, "%")
+            </if>
+        </where>
+    </select>
+
+</mapper>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.PhoneNumberAppBlacklistMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.PhoneNumberAppBlacklist">
+        <id column="id" property="id" />
+        <result column="application_id" property="applicationId" />
+        <result column="phone_id" property="phoneId" />
+        <result column="insert_dt" property="insertDt" />
+        <result column="update_dt" property="updateDt" />
+    </resultMap>
+
+</mapper>

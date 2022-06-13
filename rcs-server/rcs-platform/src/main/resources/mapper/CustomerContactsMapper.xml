@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.CustomerContactsMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.CustomerContacts">
+        <result column="id" property="id" />
+        <result column="logic_del" property="logicDel" />
+        <result column="insert_dt" property="insertDt" />
+        <result column="update_dt" property="updateDt" />
+        <result column="customer_id" property="customerId" />
+        <result column="name" property="name" />
+        <result column="id_card_no" property="idCardNo" />
+        <result column="phone_num" property="phoneNum" />
+        <result column="email" property="email" />
+        <result column="id_card_url" property="idCardUrl" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id,
+        logic_del,
+        insert_dt,
+        update_dt,
+        customer_id, name, id_card_no, phone_num, email, id_card_url
+    </sql>
+
+</mapper>

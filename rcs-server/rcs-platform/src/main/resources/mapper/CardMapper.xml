@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.CardMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.Card">
+        <result column="id" property="id"/>
+        <result column="logic_del" property="logicDel"/>
+        <result column="insert_dt" property="insertDt"/>
+        <result column="update_dt" property="updateDt"/>
+        <result column="customer_id" property="customerId"/>
+        <result column="app_id" property="appId"/>
+        <result column="name" property="name"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="sug_ids" property="sugIds"/>
+        <result column="material_id" property="materialId"/>
+        <result column="thumb_id" property="thumbId"/>
+        <result column="status" property="status"/>
+        <result column="height" property="height"/>
+    </resultMap>
+
+    <resultMap id="PageResultMap" type="com.longmaster.platform.dto.card.CardDTO" extends="BaseResultMap">
+        <result column="customer_id" property="customerId"/>
+        <result column="customer_name" property="customerName"/>
+        <result column="app_id" property="appId"/>
+        <result column="app_name" property="appName"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id,
+        logic_del,
+        insert_dt,
+        update_dt,
+        customer_id, app_id, `name`,title,  description, sug_ids, material_id, thumb_id, status, height
+    </sql>
+
+
+    <select id="selectCardDto" resultMap="PageResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from
+        t_card
+        <where>
+            id in (${idStr})
+        </where>
+        order by field(id, ${idStr})
+    </select>
+
+    <select id="pageSelect" resultMap="PageResultMap">
+        SELECT
+        a.id,
+        a.app_id,
+        a.name,
+        a.title,
+        a.description,
+        a.sug_ids,
+        a.update_dt,
+        a.material_id,
+        a.thumb_id,
+        b.`name` AS app_name,
+        c.id as customer_id,
+        c.`name` AS customer_name,
+        a.height
+        FROM
+        t_card a
+        LEFT JOIN t_application b ON a.app_id = b.id
+        LEFT JOIN t_customer c ON b.customer_id = c.id
+        <where>
+            and a.logic_del = 0
+            <if test="ew.appId != null and ew.appId !=''">
+                and a.app_id = #{ew.appId}
+            </if>
+            <if test="ew.customerId != null and ew.customerId !=''">
+                and c.id = #{ew.customerId}
+            </if>
+        </where>
+        order by a.insert_dt desc
+    </select>
+
+
+</mapper>

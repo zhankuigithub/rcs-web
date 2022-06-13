@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.DynamicTemplateMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.DynamicTemplate">
+        <result column="id" property="id"/>
+        <result column="app_id" property="appId"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="payload" property="payload"/>
+        <result column="sms_content" property="smsContent"/>
+        <result column="logic_del" property="logicDel"/>
+        <result column="insert_dt" property="insertDt"/>
+        <result column="update_dt" property="updateDt"/>
+    </resultMap>
+
+    <resultMap id="PageResultMap" type="com.longmaster.platform.dto.dynamicTemplate.DynamicTemplateDTO" extends="BaseResultMap">
+        <result column="app_name" property="appName"/>
+        <result column="customer_id" property="customerId"/>
+        <result column="customer_name" property="customerName"/>
+    </resultMap>
+
+    <select id="pageSelect" resultMap="PageResultMap">
+        select a.id, a.app_id, a.name, a.type, a.payload, a.sms_content, a.insert_dt,b.name as app_name  from t_dynamic_template a
+        LEFT JOIN t_application b ON a.app_id = b.id
+        <where>
+            a.logic_del = 0
+
+            <if test="ew.appId != null and ew.appId !=''">
+                and a.app_id = #{ew.appId}
+            </if>
+
+            <if test="ew.name != null and ew.name !=''">
+                and a.name like '%${ew.name}%'
+            </if>
+
+            <if test="ew.type != null and ew.type !=''">
+                and a.type = #{ew.type}
+            </if>
+        </where>
+        order by a.insert_dt desc
+    </select>
+
+    <select id="item" resultMap="PageResultMap">
+        select a.id, a.app_id, a.name, a.type, a.payload, a.sms_content, a.insert_dt,b.name as app_name,c.name as customer_name,c.id as customer_id
+        from t_dynamic_template a
+            LEFT JOIN t_application b ON a.app_id = b.id
+            LEFT JOIN t_customer c ON b.customer_id = c.id
+           where a.id = #{id}
+    </select>
+
+
+</mapper>

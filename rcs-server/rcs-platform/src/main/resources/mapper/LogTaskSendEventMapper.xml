@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.LogTaskSendEventMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.LogTaskSendEvent">
+        <result column="id" property="id"/>
+        <result column="task_id" property="taskId"/>
+        <result column="message_id" property="messageId"/>
+        <result column="name" property="name"/>
+        <result column="chatbot_id" property="chatBotId"/>
+        <result column="app_id" property="appId"/>
+        <result column="phone_num" property="phoneNum"/>
+        <result column="carrier_id" property="carrierId"/>
+        <result column="message_template_id" property="messageTemplateId"/>
+        <result column="message_template_name" property="messageTemplateName"/>
+        <result column="message_template_type" property="messageTemplateType"/>
+        <result column="message_template_back_type" property="messageTemplateBackType"/>
+        <result column="status" property="status"/>
+        <result column="log_dt" property="logDt"/>
+    </resultMap>
+
+    <resultMap id="LogTaskSendResultMap" type="com.longmaster.platform.dto.group.LogTaskSendEventDTO">
+        <result column="app_name" property="appName"/>
+        <result column="carrier_name" property="carrierName"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id
+        ,
+        task_id,
+        message_id,
+        name,
+        chatbot_id,
+        app_id,
+        phone_num,
+        carrier_id,
+        message_template_id,
+        message_template_name,
+        message_template_type,
+        status,
+        log_dt,
+        message_template_back_type,
+        update_dt
+    </sql>
+
+    <update id="updateStatus">
+        UPDATE t_log_task_send_event
+        SET status = #{status}
+        WHERE message_id = #{messageId}
+          and chatbot_id = #{chatBotId}
+          and phone_num = #{phoneNum}
+    </update>
+
+    <select id="pageSelect" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"></include> from t_log_task_send_event
+        <where>
+            <if test="ew.taskId != null and ew.taskId !=''">
+                task_id = #{ew.taskId}
+            </if>
+
+            <if test="ew.appId != null and ew.appId !=''">
+                and app_id = #{ew.appId}
+            </if>
+
+            <if test="ew.phone != null and ew.phone !=''">
+                and phone = #{ew.phone}
+            </if>
+
+            <if test="ew.name != null and ew.name !=''">
+                and name like '%${ew.name}%'
+            </if>
+
+            <if test="ew.messageTemplateName != null and ew.messageTemplateName !=''">
+                and message_template_name like '%${ew.messageTemplateName}%'
+            </if>
+
+            <if test="ew.beginDt != null and ew.beginDt !=''">
+                and DATE(log_dt) &gt;= #{ew.beginDt}
+            </if>
+
+            <if test="ew.endDt != null and ew.endDt !=''">
+                and DATE(log_dt) &lt;= #{ew.endDt}
+            </if>
+
+        </where>
+        order by log_dt desc
+    </select>
+
+    <select id="selectItems" resultMap="LogTaskSendResultMap">
+        select
+        a.id,
+        a.message_id,
+        a.name,
+        a.chatbot_id,
+        a.app_id,
+        a.phone_num,
+        a.carrier_id,
+        a.message_template_id,
+        a.log_dt,
+        b.name as app_name,
+        c.name as carrier_name
+
+        from t_log_task_send_event a left join t_application b on a.app_id = b.id left join t_carrier c on a.carrier_id
+        = c.id
+        <where>
+            a.message_id > ''
+            <if test="ew.appIds.size() > 0">
+                and app_id in
+                <foreach item="item" index="index" collection="ew.appIds"
+                         open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+
+            <if test="ew.carrierId != null and ew.carrierId !=''">
+                and carrier_id = #{ew.carrierId}
+            </if>
+
+            <if test="ew.beginDt != null and ew.beginDt !=''">
+                and DATE(log_dt) &gt;= #{ew.beginDt}
+            </if>
+
+            <if test="ew.endDt != null and ew.endDt !=''">
+                and DATE(log_dt) &lt;= #{ew.endDt}
+            </if>
+
+        </where>
+        order by log_dt desc
+    </select>
+
+    <select id="detailPage" resultType="java.util.HashMap">
+        SELECT
+        CONCAT(t1.task_id, '') as task_id,
+        t1.name,
+        t1.phone_num,
+        t1.carrier_id,
+        t2.name carrier_name,
+        CONCAT(t1.status, '') as status,
+        CONCAT(t1.message_template_id, '') AS message_template_id,
+        t1.message_template_name,
+        CONCAT(t1.message_template_type, '') as message_template_type,
+        CONCAT(t1.message_template_back_type, '') as message_template_back_type,
+        COALESCE(DATE_FORMAT(t1.update_dt, '%Y-%c-%d %H:%i:%s') ,NULL ,'') as update_dt,
+        case t1.status when 1 then '5G'
+                       when 2 then (case t1.message_template_back_type  when 0 then '' when 1 then 'Chatbot H5' when 2 then '普通短信' when 3 then 'UP1.0' end)
+                       when 3 then '5G'
+                       when 4 then '5G'
+                       when 5 then '普通短信' else '' end as send_des
+
+        FROM t_log_task_send_event t1 LEFT JOIN t_carrier t2 ON t1.carrier_id = t2.id
+
+        <where>
+            <if test="params.taskId !=null and params.taskId!='' ">
+                and t1.task_id = #{params.taskId}
+            </if>
+            <if test="params.phoneNum !=null and params.phoneNum!='' ">
+                and t1.phone_num = #{params.phoneNum}
+            </if>
+        </where>
+
+        ORDER BY t1.log_dt DESC
+    </select>
+
+</mapper>

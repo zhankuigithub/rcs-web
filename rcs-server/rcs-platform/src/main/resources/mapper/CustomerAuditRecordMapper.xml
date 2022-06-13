@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longmaster.platform.mapper.CustomerAuditRecordMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.longmaster.platform.entity.CustomerAuditRecord">
+        <result column="id" property="id"/>
+        <result column="logic_del" property="logicDel"/>
+        <result column="insert_dt" property="insertDt"/>
+        <result column="update_dt" property="updateDt"/>
+        <result column="customer_id" property="customerId"/>
+        <result column="carrier_id" property="carrierId"/>
+        <result column="csp_ec_no" property="cspEcNo"/>
+        <result column="status" property="status"/>
+        <result column="review_data" property="reviewData"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id,
+        logic_del,
+        insert_dt,
+        update_dt,
+        customer_id, carrier_id, csp_ec_no, status, review_data
+    </sql>
+
+    <!--审核客户-->
+    <select id="pageSelect" resultType="com.longmaster.platform.dto.customer.CustomerAuditRecordDTO">
+        SELECT
+        a.id,
+        a.customer_id,
+        a.carrier_id,
+        a.csp_ec_no,
+        a.`status`,
+        a.review_data,
+        a.insert_dt,
+        a.update_dt,
+        b.`name` customerName,
+        c.`name` carrierName
+        FROM
+        t_customer_audit_record a
+        LEFT JOIN t_customer b ON a.customer_id = b.id
+        LEFT JOIN t_carrier c ON a.carrier_id = c.id
+        <where>
+            <choose>
+                <when test="carrierIds!=null and carrierIds!=''">
+                    a.carrier_id in (${carrierIds})
+                </when>
+                <otherwise>
+                    a.carrier_id = 0
+                </otherwise>
+            </choose>
+
+            <if test="ew.status != null">
+                and a.status = #{ew.status,jdbcType=INTEGER}
+            </if>
+            <if test="ew.carrierId != null">
+                and a.carrier_id = #{ew.carrierId,jdbcType=BIGINT}
+            </if>
+            <if test="ew.customerId != null">
+                and a.customer_id = #{ew.customerId,jdbcType=BIGINT}
+            </if>
+        </where>
+    </select>
+
+
+    <select id="selectAudit" resultType="com.longmaster.platform.dto.customer.CustomerAuditRecordDTO">
+        SELECT
+            t.id,
+            t.customer_id,
+            t.carrier_id,
+            t.`status`,
+            t.review_data,
+            t1.`name` carrierName
+        FROM
+            t_customer_audit_record t
+            LEFT JOIN t_carrier t1 ON t.carrier_id = t1.id and t1.logic_del = 0
+        WHERE
+            t.customer_id = #{customerId,jdbcType=BIGINT} AND
+            <choose>
+                <when test="carrierIds!=null and carrierIds!=''">
+                    t.carrier_id in  (${carrierIds})
+                </when>
+                <otherwise>
+                    t.carrier_id = 0
+                </otherwise>
+            </choose>
+    </select>
+
+</mapper>
