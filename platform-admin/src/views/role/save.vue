@@ -37,17 +37,17 @@
           </el-form-item>
         </el-col>
       </el-row>
-      <el-row>
-        <el-col :span="24">
-          <el-form-item label="文本短信客户" prop="clientIds">
-            <el-checkbox-group v-model="selectClientIds">
-              <el-checkbox v-for="item in dialogConfig.clientList" :key="item.clientId + ''" :label="item.clientId + ''">
-                {{item.clientDesc}}
-              </el-checkbox>
-            </el-checkbox-group>
-          </el-form-item>
-        </el-col>
-      </el-row>
+<!--      <el-row>-->
+<!--        <el-col :span="24">-->
+<!--          <el-form-item label="文本短信客户" prop="clientIds">-->
+<!--            <el-checkbox-group v-model="selectClientIds">-->
+<!--              <el-checkbox v-for="item in dialogConfig.clientList" :key="item.clientId + ''" :label="item.clientId + ''">-->
+<!--                {{item.clientDesc}}-->
+<!--              </el-checkbox>-->
+<!--            </el-checkbox-group>-->
+<!--          </el-form-item>-->
+<!--        </el-col>-->
+<!--      </el-row>-->
 
     </el-form>
     <div slot="footer" class="dialog-footer">

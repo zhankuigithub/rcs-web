@@ -228,9 +228,6 @@ export default {
   mounted() {
     this.dialogConfig.status = this.status.filter(item => item.value >= 0)
     this.loadPage()
-    getClientList().then(res=>{
-        this.dialogConfig.clientList = res.data
-    })
   }
 };
 </script>

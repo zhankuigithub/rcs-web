@@ -35,7 +35,7 @@ module.exports = {
     open: true,
     proxy: {
       '/admin/gateway': {
-        target: 'http://10.20.60.1:9090',
+        target: 'http://10.254.58.141:9090',
         pathRewrite: {
           '^/admin/gateway': ''
         }
